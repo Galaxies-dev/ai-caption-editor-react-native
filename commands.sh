@@ -5,7 +5,9 @@ bun install nativewind tailwindcss@^3.4.17
 bunx expo install expo-dev-client
 bunx expo install @expo-google-fonts/poppins expo-font
 bunx expo install expo-image-picker
+bun install @clerk/clerk-expo expo-secure-store
 
 
+bun install convex
+bunx convex dev
 
-bun i @clerk/clerk-expo expo-secure-store
