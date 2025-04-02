@@ -4,6 +4,7 @@ const Layout = () => {
   return (
     <Stack>
       <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="faq" options={{ headerShown: false, presentation: 'modal' }} />
     </Stack>
   );
 };

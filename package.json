@@ -15,6 +15,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@clerk/backend": "^1.25.8",
     "@clerk/clerk-expo": "^2.9.6",
     "@expo-google-fonts/poppins": "^0.3.0",
     "@expo/vector-icons": "^14.0.2",
@@ -23,11 +24,13 @@
     "convex": "^1.22.0",
     "expo": "~52.0.42",
     "expo-blur": "~14.0.3",
+    "expo-checkbox": "~4.0.1",
     "expo-constants": "~17.0.8",
     "expo-dev-client": "~5.0.17",
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",
     "expo-image-picker": "~16.0.6",
+    "expo-linear-gradient": "~14.0.2",
     "expo-linking": "~7.0.5",
     "expo-router": "~4.0.19",
     "expo-secure-store": "^14.0.1",

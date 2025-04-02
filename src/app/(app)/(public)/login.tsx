@@ -1,88 +1,223 @@
-import { Text, View, Pressable, ActivityIndicator, Image } from 'react-native';
+import React from 'react';
+import {
+  Text,
+  View,
+  Pressable,
+  ActivityIndicator,
+  TextInput,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { useSSO } from '@clerk/clerk-expo';
-import { randomUUID } from 'expo-crypto';
-import { api } from '@/convex/_generated/api';
-import { useQuery } from 'convex/react';
+import Checkbox from 'expo-checkbox';
+import { Link } from 'expo-router';
+import Feather from '@expo/vector-icons/Feather';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import resolveConfig from 'tailwindcss/resolveConfig';
+import tailwindConfig from '../../../../tailwind.config';
+const twFullConfig = resolveConfig(tailwindConfig);
 
-export default function Index() {
-  const [loading, setLoading] = useState(false);
+export default function LoginScreen() {
+  const [loading, setLoading] = useState<'google' | 'apple' | 'microsoft' | 'email' | false>(false);
+  const [isTermsChecked, setTermsChecked] = useState(false);
+  const [email, setEmail] = useState('');
+
   const { startSSOFlow } = useSSO();
-  const tasks = useQuery(api.tasks.get);
-  console.log('🚀 ~ Index ~ tasks:', tasks);
 
   const handleSignInWithSSO = async (
     strategy: 'oauth_google' | 'oauth_apple' | 'oauth_microsoft'
   ) => {
+    if (
+      strategy === 'oauth_google' ||
+      strategy === 'oauth_apple' ||
+      strategy === 'oauth_microsoft'
+    ) {
+      setLoading(strategy.replace('oauth_', '') as 'google' | 'apple' | 'microsoft');
+    } else {
+      setLoading(false);
+    }
     try {
-      const { createdSessionId, setActive, signUp } = await startSSOFlow({
+      const { createdSessionId, setActive } = await startSSOFlow({
         strategy,
       });
 
-      // If sign in was successful, set the active session
       if (createdSessionId) {
         setActive!({ session: createdSessionId });
-
-        const email = signUp?.emailAddress;
-        const username = signUp?.emailAddress;
-        const password = randomUUID();
-        const id = signUp?.createdUserId;
-
-        if (!email || !username || !password || !id) {
-          throw new Error('Missing required fields');
-        }
-
-        const strapiUser = {
-          email,
-          username,
-          password,
-          clerkId: id,
-        };
       }
     } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
-      console.log(err);
+      console.error('OAuth error', err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleEmailSignIn = async () => {
+    if (!isTermsChecked) {
+      console.log('Please agree to the terms.');
+      return;
+    }
+    setLoading('email');
+    console.log('Email sign-in initiated for:', email);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setLoading(false);
+  };
+
+  const handleLinkPress = (linkType: 'terms' | 'privacy') => {
+    console.log(`Link pressed: ${linkType}`);
+    // TODO: Implement navigation or opening a webview for the link
+  };
+
+  const Logo = () => (
+    <View className="items-center mb-24 pt-10">
+      <View className="flex-row">
+        <Text className="text-white text-6xl font-bold">captions</Text>
+        <Text className="text-white text-xl font-bold">®</Text>
+      </View>
+      <Text className="text-gray-400 text-md mt-2 font-Poppins_400Regular">
+        Generate and edit talking videos with AI.
+      </Text>
+    </View>
+  );
+
   return (
-    <View className="flex-1 bg-[#132134] justify-center">
-      {loading ? (
-        <ActivityIndicator size="large" />
-      ) : (
-        <View className="w-full items-center gap-8 max-w-md mx-auto">
-          {/* <Image
-            source={require('@/assets/images/intro.png')}
-            style={{
-              width: '100%',
-              height: 400,
-              aspectRatio: 1,
-            }}
-            resizeMode="contain"
-          /> */}
-          <Text className="text-3xl font-bold text-white mb-2">Your journey starts here</Text>
+    <View className="flex-1 bg-black">
+      {/* Container for Colored Blobs */}
+      <View className="absolute top-0 left-0 right-0 h-[400px] overflow-hidden">
+        {/* Colored Blobs */}
+        <View className="absolute -top-20 -left-40 w-96 h-96 bg-sky-400 rounded-full opacity-80" />
+        <View className="absolute -top-40 -right-20 w-96 h-96 bg-blue-600 rounded-full opacity-50" />
+        <View className="absolute top-20 -right-20 w-72 h-72 bg-indigo-600 rounded-full opacity-40" />
+      </View>
 
-          <View className="w-full gap-4 px-4">
-            <Pressable
-              className="w-full flex-row justify-center items-center bg-white py-3 rounded-lg hover:cursor-pointer hover:bg-gray-800 duration-300"
-              onPress={() => handleSignInWithSSO('oauth_apple')}>
-              <Ionicons name="logo-apple" size={24} color="black" className="mr-2" />
-              <Text className="text-black text-center font-semibold ml-2">Continue with Apple</Text>
-            </Pressable>
+      {/* Blurred Overlay */}
+      <BlurView
+        intensity={100}
+        tint="dark"
+        className="absolute top-0 left-0 right-0 h-[400px]"></BlurView>
 
-            <Pressable
-              className="w-full flex-row justify-center items-center bg-white py-3 rounded-lg hover:cursor-pointer hover:bg-gray-800 duration-300"
-              onPress={() => handleSignInWithSSO('oauth_google')}>
-              <Ionicons name="logo-google" size={24} color="black" className="mr-2" />
-              <Text className="text-black text-center font-semibold ml-2">
-                Continue with Google
-              </Text>
-            </Pressable>
-          </View>
+      {/* Gradient Overlay for Smooth Transition */}
+      <LinearGradient
+        colors={['rgba(0,0,0,0)', 'black']} // Fade from transparent to the background black
+        className="absolute left-0 right-0 h-[150px]" // Height of the gradient fade
+        style={{ top: 200 - 150 }} // Position gradient at the bottom of the 400px blur area
+      />
+
+      {/* Main Content Area */}
+      <View className="flex-1 p-6 pt-safe z-10">
+        <View className="flex-row justify-end">
+          <Link href="/faq" asChild>
+            <TouchableOpacity className="bg-gray-700 rounded-xl p-2">
+              <Feather name="help-circle" size={30} color="white" />
+            </TouchableOpacity>
+          </Link>
         </View>
-      )}
+        <Logo />
+
+        <TextInput
+          className="bg-gray-800 text-gray-300 p-5 rounded-xl mb-6"
+          placeholder="Email"
+          placeholderTextColor="#888"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <View className="flex-row items-center">
+          <Checkbox
+            value={isTermsChecked}
+            onValueChange={setTermsChecked}
+            color={isTermsChecked ? (twFullConfig.theme.colors as any).primary : undefined}
+            className="mr-3"
+          />
+          <Text className="text-gray-400 text-md font-Poppins_500Medium flex-1 flex-wrap">
+            I agree to the{' '}
+            <Text className="text-white underline" onPress={() => handleLinkPress('terms')}>
+              Terms of Service
+            </Text>{' '}
+            and acknowledge Captions'{' '}
+            <Text className="text-white underline" onPress={() => handleLinkPress('privacy')}>
+              Privacy Policy
+            </Text>
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          className={`w-full py-4 rounded-lg mt-6 mb-14 ${
+            !email || !isTermsChecked || loading === 'email' ? 'bg-gray-800' : 'bg-primary'
+          }`}
+          onPress={handleEmailSignIn}
+          disabled={!email || !isTermsChecked || loading === 'email'}>
+          {loading === 'email' ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-white text-center font-Poppins_600SemiBold text-lg ">
+              Continue
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        <View className="gap-4">
+          <Pressable
+            className="w-full flex-row justify-center items-center bg-gray-800 p-4 rounded-lg"
+            onPress={() => handleSignInWithSSO('oauth_apple')}
+            disabled={!!loading}>
+            {loading === 'apple' ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <>
+                <Ionicons name="logo-apple" size={24} color="white" />
+                <Text className="text-white text-center font-Poppins_600SemiBold ml-3 text-base">
+                  Continue with Apple
+                </Text>
+              </>
+            )}
+          </Pressable>
+
+          <Pressable
+            className="w-full flex-row justify-center items-center bg-gray-800 p-4 rounded-lg"
+            onPress={() => handleSignInWithSSO('oauth_google')}
+            disabled={!!loading}>
+            {loading === 'google' ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <>
+                <Image source={require('@/assets/images/google.webp')} className="w-6 h-6" />
+                <Text className="text-white text-center font-Poppins_600SemiBold ml-3 text-base">
+                  Continue with Google
+                </Text>
+              </>
+            )}
+          </Pressable>
+
+          <Pressable
+            className="w-full flex-row justify-center items-center bg-gray-800 p-4 rounded-lg"
+            onPress={() => handleSignInWithSSO('oauth_microsoft')}
+            disabled={!!loading}>
+            {loading === 'microsoft' ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <>
+                <Image source={require('@/assets/images/microsoft.webp')} className="w-6 h-6" />
+                <Text className="text-white text-center font-Poppins_600SemiBold ml-3 text-base">
+                  Continue with Microsoft
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </View>
+
+        <View className="items-center pt-6">
+          <TouchableOpacity>
+            <Text className="text-gray-400 text-center font-Poppins_600SemiBold text-base">
+              Continue another way
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }

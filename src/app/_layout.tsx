@@ -1,6 +1,12 @@
 import { Slot, SplashScreen, Stack } from 'expo-router';
 import '@/global.css';
-import { useFonts, Poppins_400Regular } from '@expo-google-fonts/poppins';
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+} from '@expo-google-fonts/poppins';
 import { LogBox, useColorScheme } from 'react-native';
 import { tokenCache } from '@/utils/cache';
 import { ClerkProvider, ClerkLoaded, useAuth, useUser } from '@clerk/clerk-expo';
@@ -28,6 +34,9 @@ const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
 const InitialLayout = () => {
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
   });
   const user = useUser();
 
