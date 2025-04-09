@@ -3,7 +3,6 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  Pressable,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
@@ -13,7 +12,7 @@ import { useState, useRef, useEffect } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { emailAtom } from '@/store/login';
 import { useAtomValue } from 'jotai';
-import { isClerkAPIResponseError, useSignIn, useSignUp } from '@clerk/clerk-expo';
+import { isClerkAPIResponseError, useSignUp } from '@clerk/clerk-expo';
 import { Alert } from 'react-native';
 
 const Verify = () => {
@@ -79,7 +78,7 @@ const Verify = () => {
       });
       console.log('result', JSON.stringify(result, null, 2));
       await setActive!({ session: result.createdSessionId });
-      router.replace('/(app)/(authenticated)/(tabs)');
+      router.replace('/(app)/(authenticated)/(drawer)/(tabs)/projects');
     } catch (err) {
       console.log('error', JSON.stringify(err, null, 2));
       if (isClerkAPIResponseError(err)) {

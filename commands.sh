@@ -8,6 +8,7 @@ bunx expo install expo-image-picker
 bunx expo install expo-checkbox
 bunx expo install expo-linear-gradient
 
+bun install @react-navigation/drawer
 bun install @clerk/clerk-expo expo-secure-store
 bun install jotai
 

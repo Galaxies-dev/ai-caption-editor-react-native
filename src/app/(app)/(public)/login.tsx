@@ -19,7 +19,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindConfig from '../../../../tailwind.config';
+import tailwindConfig from '~/tailwind.config';
 import { useSetAtom } from 'jotai';
 import { emailAtom } from '@/store/login';
 const twFullConfig = resolveConfig(tailwindConfig);

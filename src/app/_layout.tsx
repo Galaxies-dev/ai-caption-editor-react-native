@@ -1,4 +1,4 @@
-import { Slot, SplashScreen, Stack } from 'expo-router';
+import { Slot, SplashScreen } from 'expo-router';
 import '@/global.css';
 import {
   useFonts,
@@ -9,7 +9,7 @@ import {
 } from '@expo-google-fonts/poppins';
 import { LogBox, useColorScheme } from 'react-native';
 import { tokenCache } from '@/utils/cache';
-import { ClerkProvider, ClerkLoaded, useAuth, useUser } from '@clerk/clerk-expo';
+import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
 import { ConvexReactClient } from 'convex/react';
 import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import { useEffect } from 'react';
@@ -38,28 +38,12 @@ const InitialLayout = () => {
     Poppins_600SemiBold,
     Poppins_700Bold,
   });
-  const user = useUser();
 
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
-
-  if (!fontsLoaded) return null;
-
-  // Automatic login
-  // useEffect(() => {
-  //   if (!isLoaded) return;
-
-  //   const inTabsGroup = segments[0] === '(auth)';
-
-  //   if (isSignedIn && !inTabsGroup) {
-  //     router.replace('/(auth)/(tabs)/feed');
-  //   } else if (!isSignedIn && inTabsGroup) {
-  //     router.replace('/(public)');
-  //   }
-  // }, [isSignedIn]);
 
   // Sentry
   // useEffect(() => {
@@ -69,6 +53,10 @@ const InitialLayout = () => {
   //     Sentry.setUser(null);
   //   }
   // }, [user]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return <Slot />;
 };

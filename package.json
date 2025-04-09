@@ -20,6 +20,7 @@
     "@expo-google-fonts/poppins": "^0.3.0",
     "@expo/vector-icons": "^14.0.2",
     "@react-navigation/bottom-tabs": "^7.2.0",
+    "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/native": "^7.0.14",
     "convex": "^1.22.0",
     "expo": "~52.0.42",
