@@ -26,18 +26,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarLabel: 'My Studio',
+          tabBarLabel: 'Projects',
           tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
         }}
       />
 
-      <Tabs.Screen
-        name="my-content"
-        options={{
-          title: 'My Courses',
-          tabBarIcon: ({ color, size }) => <Ionicons name="book" size={size} color={color} />,
-        }}
-      />
       <Tabs.Screen
         name="profile"
         options={{

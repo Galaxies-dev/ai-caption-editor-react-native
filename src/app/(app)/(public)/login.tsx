@@ -7,26 +7,32 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Linking,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { useSSO } from '@clerk/clerk-expo';
+import { useSignUp, useSSO } from '@clerk/clerk-expo';
 import Checkbox from 'expo-checkbox';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from '../../../../tailwind.config';
+import { useSetAtom } from 'jotai';
+import { emailAtom } from '@/store/login';
 const twFullConfig = resolveConfig(tailwindConfig);
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState<'google' | 'apple' | 'microsoft' | 'email' | false>(false);
   const [isTermsChecked, setTermsChecked] = useState(false);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('saimon@devdactic.com');
+  const setEmailAtom = useSetAtom(emailAtom);
 
   const { startSSOFlow } = useSSO();
-
+  const { signUp } = useSignUp();
+  const router = useRouter();
   const handleSignInWithSSO = async (
     strategy: 'oauth_google' | 'oauth_apple' | 'oauth_microsoft'
   ) => {
@@ -59,15 +65,24 @@ export default function LoginScreen() {
       console.log('Please agree to the terms.');
       return;
     }
-    setLoading('email');
-    console.log('Email sign-in initiated for:', email);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setLoading(false);
+    try {
+      const result = await signUp?.create({
+        emailAddress: email,
+      });
+      await signUp!.prepareEmailAddressVerification({ strategy: 'email_code' });
+      setEmailAtom(email);
+      router.push('/verify');
+    } catch (error) {
+      console.error('Sign up error:', error);
+      Alert.alert('Error', 'Something went wrong');
+    }
   };
 
   const handleLinkPress = (linkType: 'terms' | 'privacy') => {
     console.log(`Link pressed: ${linkType}`);
-    // TODO: Implement navigation or opening a webview for the link
+    Linking.openURL(
+      linkType === 'terms' ? 'https://galaxies.dev/terms' : 'https://galaxies.dev/privacy'
+    );
   };
 
   const Logo = () => (
@@ -129,7 +144,10 @@ export default function LoginScreen() {
         <View className="flex-row items-center">
           <Checkbox
             value={isTermsChecked}
-            onValueChange={setTermsChecked}
+            onValueChange={(newValue) => {
+              console.log('Checkbox value changed:', newValue);
+              setTermsChecked(newValue);
+            }}
             color={isTermsChecked ? (twFullConfig.theme.colors as any).primary : undefined}
             className="mr-3"
           />
@@ -146,7 +164,7 @@ export default function LoginScreen() {
         </View>
 
         <TouchableOpacity
-          className={`w-full py-4 rounded-lg mt-6 mb-14 ${
+          className={`w-full py-4 rounded-lg mt-6 mb-14 transition-colors duration-300 ${
             !email || !isTermsChecked || loading === 'email' ? 'bg-gray-800' : 'bg-primary'
           }`}
           onPress={handleEmailSignIn}

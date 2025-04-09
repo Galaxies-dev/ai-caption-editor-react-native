@@ -5,6 +5,7 @@ const Layout = () => {
     <Stack>
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="faq" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="verify" options={{ headerShown: false }} />
     </Stack>
   );
 };
