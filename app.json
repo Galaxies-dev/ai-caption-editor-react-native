@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.galaxies.captions-clone"
+      "bundleIdentifier": "com.galaxies.captions-clone",
+      "associatedDomains": [
+        "applinks:obliging-bulldog-86.clerk.accounts.dev",
+        "webcredentials:obliging-bulldog-86.clerk.accounts.dev"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -34,7 +38,23 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.0" //  iOS Support passkeys from version iOS 16+
+          }
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

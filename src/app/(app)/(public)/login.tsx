@@ -12,17 +12,15 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { useSignUp, useSSO } from '@clerk/clerk-expo';
+import { useSignUp, useSSO, useSignIn } from '@clerk/clerk-expo';
 import Checkbox from 'expo-checkbox';
 import { Link, useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindConfig from '~/tailwind.config';
 import { useSetAtom } from 'jotai';
 import { emailAtom } from '@/store/login';
-const twFullConfig = resolveConfig(tailwindConfig);
+import { twFullConfig } from '@/utils/twconfig';
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState<'google' | 'apple' | 'microsoft' | 'email' | false>(false);
@@ -32,6 +30,7 @@ export default function LoginScreen() {
 
   const { startSSOFlow } = useSSO();
   const { signUp } = useSignUp();
+  const { signIn, setActive } = useSignIn();
   const router = useRouter();
   const handleSignInWithSSO = async (
     strategy: 'oauth_google' | 'oauth_apple' | 'oauth_microsoft'
@@ -83,6 +82,30 @@ export default function LoginScreen() {
     Linking.openURL(
       linkType === 'terms' ? 'https://galaxies.dev/terms' : 'https://galaxies.dev/privacy'
     );
+  };
+
+  const signInWithPasskey = async () => {
+    // 'discoverable' lets the user choose a passkey
+    // without auto-filling any of the options
+    try {
+      const signInAttempt = await signIn?.authenticateWithPasskey({
+        flow: 'discoverable',
+      });
+
+      if (signInAttempt?.status === 'complete') {
+        if (setActive !== undefined) {
+          await setActive({ session: signInAttempt.createdSessionId });
+        }
+      } else {
+        // If the status is not complete, check why. User may need to
+        // complete further steps.
+        console.error(JSON.stringify(signInAttempt, null, 2));
+      }
+    } catch (err) {
+      // See https://clerk.com/docs/custom-flows/error-handling
+      // for more info on error handling
+      console.error('Error:', JSON.stringify(err, null, 2));
+    }
   };
 
   const Logo = () => (
@@ -229,9 +252,9 @@ export default function LoginScreen() {
         </View>
 
         <View className="items-center pt-6">
-          <TouchableOpacity>
+          <TouchableOpacity onPress={signInWithPasskey}>
             <Text className="text-gray-400 text-center font-Poppins_600SemiBold text-base">
-              Continue another way
+              Continue with Passkey
             </Text>
           </TouchableOpacity>
         </View>

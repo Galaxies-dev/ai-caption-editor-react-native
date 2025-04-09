@@ -15,6 +15,7 @@ import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DefaultTheme, ThemeProvider, DarkTheme } from '@react-navigation/native';
+import { passkeys } from '@clerk/clerk-expo/passkeys';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -74,7 +75,10 @@ export default function RootLayout() {
   // }, [ref]);
 
   return (
-    <ClerkProvider publishableKey={publishableKey!} tokenCache={tokenCache}>
+    <ClerkProvider
+      publishableKey={publishableKey!}
+      tokenCache={tokenCache}
+      __experimental_passkeys={passkeys}>
       <ClerkLoaded>
         <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
           <GestureHandlerRootView style={{ flex: 1 }}>
