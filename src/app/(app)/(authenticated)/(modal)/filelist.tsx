@@ -1,116 +1,142 @@
-import { View, Text, StyleSheet, Pressable, Image, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import { useEffect, useState } from 'react';
 import * as MediaLibrary from 'expo-media-library';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { formatDuration } from '@/utils/formatDuration';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import * as FileSystem from 'expo-file-system';
 
 export default function FileList() {
   const [videos, setVideos] = useState<MediaLibrary.Asset[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
+
+  const generateUploadUrl = useMutation(api.projects.generateUploadUrl);
+  const createProject = useMutation(api.projects.create);
 
   useEffect(() => {
     (async () => {
-      const permission = await MediaLibrary.requestPermissionsAsync();
-      if (!permission.granted) return;
+      try {
+        const permission = await MediaLibrary.requestPermissionsAsync();
+        if (!permission.granted) return;
 
-      const media = await MediaLibrary.getAssetsAsync({
-        mediaType: 'video',
-        sortBy: ['creationTime'],
-      });
-      console.log(media.assets);
-      setVideos(media.assets);
+        const media = await MediaLibrary.getAssetsAsync({
+          mediaType: 'video',
+          sortBy: ['creationTime'],
+        });
+        setVideos(media.assets);
+      } catch (error) {
+        console.error('Error loading videos:', error);
+      } finally {
+        setIsLoading(false);
+      }
     })();
   }, []);
 
-  const selectVideo = (video: MediaLibrary.Asset) => {
-    console.log(video);
+  const selectVideo = async (video: MediaLibrary.Asset) => {
+    try {
+      setIsUploading(true);
+
+      // Get the upload URL from Convex
+      const uploadUrl = await generateUploadUrl();
+      console.log('🚀 ~ selectVideo ~ uploadUrl:', uploadUrl);
+
+      // Get the video file
+      const fileInfo = await MediaLibrary.getAssetInfoAsync(video.id);
+
+      const videoUri = fileInfo.localUri;
+      console.log('🚀 ~ selectVideo ~ videoUri:', videoUri);
+
+      if (!videoUri) {
+        throw new Error('Video URI not found');
+      }
+
+      // Convert URI to blob
+      const videoResponse = await fetch(videoUri);
+      const blob = await videoResponse.blob();
+
+      console.log('Make fetch: ', blob);
+
+      // Upload the video file
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': blob!.type },
+        body: blob,
+        // body: await FileSystem.readAsStringAsync(videoUri, {
+        //   encoding: FileSystem.EncodingType.Base64,
+        // }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload video');
+      }
+
+      const { storageId } = await response.json();
+
+      console.log('🚀 ~ selectVideo ~ response:', response);
+      // Get the storage ID from the response headers and parse it as a Convex ID
+      // const storageId = response.headers.get('storageId');
+      console.log('🚀 ~ selectVideo ~ storageId:', storageId);
+      if (!storageId) {
+        throw new Error('No storage ID returned from upload');
+      }
+
+      // Create the project with the uploaded video
+      const projectId = await createProject({
+        name: video.filename || 'Untitled Video',
+        storageId: storageId as any, // Type assertion needed as Convex handles the ID type internally
+      });
+      console.log('🚀 ~ selectVideo ~ projectId:', projectId);
+
+      // Navigate to the project page
+      router.push(`/project/${projectId}`);
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.grid}>
+    <View className="flex-1 bg-[#1c1c1e]">
+      <ScrollView className="flex-1">
+        <View className="flex-row flex-wrap p-1">
           {videos.map((video) => (
-            <Pressable key={video.id} style={styles.videoItem} onPress={() => selectVideo(video)}>
-              <Image source={{ uri: video.uri }} style={styles.thumbnail} resizeMode="cover" />
-              <View style={styles.durationContainer}>
-                <Text style={styles.duration}>{formatDuration(video.duration)}</Text>
+            <Pressable
+              key={video.id}
+              className="w-1/3 aspect-square p-0.5 relative"
+              onPress={() => selectVideo(video)}
+              disabled={isUploading}>
+              <Image
+                source={{ uri: video.uri }}
+                className="flex-1 rounded-lg bg-[#2c2c2e]"
+                resizeMode="cover"
+              />
+              <View className="absolute bottom-2 right-2 bg-black/60 rounded p-1">
+                <Text className="text-white text-xs">{formatDuration(video.duration)}</Text>
               </View>
             </Pressable>
           ))}
         </View>
       </ScrollView>
+      {(isUploading || isLoading) && (
+        <View className="absolute inset-0 bg-black/70 justify-center items-center z-50">
+          <ActivityIndicator size="large" color="#ffffff" />
+          <Text className="text-white mt-3 text-base">Loading...</Text>
+        </View>
+      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1c1c1e',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    paddingTop: 60,
-    backgroundColor: '#1c1c1e',
-  },
-  closeButton: {
-    padding: 8,
-  },
-  title: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-    marginLeft: 16,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 4,
-  },
-  videoItem: {
-    width: '33.33%',
-    aspectRatio: 1,
-    padding: 2,
-    position: 'relative',
-  },
-  thumbnail: {
-    flex: 1,
-    borderRadius: 8,
-    backgroundColor: '#2c2c2e',
-  },
-  durationContainer: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 4,
-    padding: 4,
-  },
-  duration: {
-    color: 'white',
-    fontSize: 12,
-  },
-  selectionOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 122, 255, 0.3)',
-    borderRadius: 8,
-    margin: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkmark: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

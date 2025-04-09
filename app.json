@@ -12,8 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.galaxies.captions-clone",
       "associatedDomains": [
-        "applinks:obliging-bulldog-86.clerk.accounts.dev",
-        "webcredentials:obliging-bulldog-86.clerk.accounts.dev"
+        "applinks:pleased-haddock-38.clerk.accounts.dev",
+        "webcredentials:pleased-haddock-38.clerk.accounts.dev"
       ]
     },
     "android": {

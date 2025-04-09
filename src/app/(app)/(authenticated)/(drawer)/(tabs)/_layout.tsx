@@ -51,7 +51,7 @@ export default function TabLayout() {
           backgroundColor: (twFullConfig.theme.colors as any).dark,
           elevation: 0,
           height: 100,
-          borderBottomColor: '#ff0000',
+          borderTopColor: '#494949',
         },
         headerStyle: {
           backgroundColor: (twFullConfig.theme.colors as any).dark,
@@ -120,3 +120,8 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+// const styles = StyleSheet.create({
+//   tabBarButton: {
+//     backgroundColor: '#2e2e2e',
+//   },
+// });

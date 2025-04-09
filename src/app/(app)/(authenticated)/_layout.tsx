@@ -43,6 +43,25 @@ const Layout = () => {
           },
         }}
       />
+      <Stack.Screen
+        name="(modal)/project/[id]"
+        options={{
+          presentation: 'fullScreenModal',
+          animation: 'fade',
+          headerLeft: () => (
+            <Pressable onPress={() => router.dismissAll()}>
+              <Ionicons name="close" size={24} color="white" />
+            </Pressable>
+          ),
+          headerStyle: {
+            backgroundColor: (twFullConfig.theme.colors as any).dark,
+          },
+          headerTitle: 'Project',
+          headerTitleStyle: {
+            color: 'white',
+          },
+        }}
+      />
     </Stack>
   );
 };
