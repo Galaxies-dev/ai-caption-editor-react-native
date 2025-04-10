@@ -19,6 +19,13 @@ const captionSegmentValidator = v.object({
   ),
 });
 
+// Schema for caption styling settings
+const captionSettingsValidator = v.object({
+  fontSize: v.number(),
+  position: v.union(v.literal('top'), v.literal('middle'), v.literal('bottom')),
+  color: v.string(),
+});
+
 export const User = {
   email: v.string(),
   // this the Clerk ID, stored in the subject JWT field
@@ -36,6 +43,8 @@ export default defineSchema({
     videoFileId: v.id('_storage'), // Reference to stored video file
     language: v.optional(v.string()),
     captions: v.optional(v.array(captionSegmentValidator)),
+    captionSettings: v.optional(captionSettingsValidator),
+    generatedVideoFileId: v.optional(v.id('_storage')), // Reference to video with burned-in captions
     status: v.union(
       v.literal('pending'),
       v.literal('processing'),

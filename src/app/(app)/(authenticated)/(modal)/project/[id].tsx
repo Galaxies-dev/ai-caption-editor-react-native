@@ -1,13 +1,21 @@
-import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQuery, useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useState, useEffect } from 'react';
 import { Button } from 'react-native';
 import { Id } from '@/convex/_generated/dataModel';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { useEvent } from 'expo';
+import { useVideoPlayer, VideoView, VideoPlayerStatus } from 'expo-video';
+import { useEvent, useEventListener } from 'expo';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
+
+type CaptionPosition = 'top' | 'middle' | 'bottom';
+
+type CaptionSettings = {
+  fontSize: number;
+  position: CaptionPosition;
+  color: string;
+};
 
 // CaptionsOverlay component
 const CaptionsOverlay = ({
@@ -29,17 +37,26 @@ const CaptionsOverlay = ({
 
   if (!currentCaption) return null;
 
-  const positionStyles = {
-    top: { top: 50 },
-    middle: { top: 250, transform: [{ translateY: -50 }] },
-    bottom: { bottom: 200 },
+  const positionClasses = {
+    top: 'top-[50px]',
+    middle: 'top-[250px] -translate-y-1/2',
+    bottom: 'bottom-[200px]',
   };
 
   return (
-    <View style={[styles.captionsContainer, positionStyles[position]]}>
-      <Text style={[styles.captionText, { fontSize, color }]}>{currentCaption.text}</Text>
+    <View
+      className={`absolute left-0 right-0 items-center justify-center px-2.5 ${positionClasses[position]}`}>
+      <Text className="text-center bg-black/50 p-2 rounded" style={{ fontSize, color }}>
+        {currentCaption.text}
+      </Text>
     </View>
   );
+};
+
+const DEFAULT_CAPTION_SETTINGS: CaptionSettings = {
+  fontSize: 24,
+  position: 'bottom',
+  color: '#ffffff',
 };
 
 const Page = () => {
@@ -47,24 +64,24 @@ const Page = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [showCaptionControls, setShowCaptionControls] = useState(false);
-  const [captionSettings, setCaptionSettings] = useState({
-    fontSize: 24,
-    position: 'bottom' as 'top' | 'middle' | 'bottom',
-    color: '#ff00ff',
-  });
+  const [captionSettings, setCaptionSettings] = useState<CaptionSettings>(DEFAULT_CAPTION_SETTINGS);
 
   const project = useQuery(api.projects.get, { id: id as Id<'projects'> });
   const updateProject = useMutation(api.projects.update);
   const updateCaptions = useMutation(api.projects.updateCaptions);
+  const updateCaptionSettings = useMutation(api.projects.updateCaptionSettings);
   const processVideo = useAction(api.elevenlabs.processVideo);
 
   // Get the file URL from Convex storage
-  const fileUrl = useQuery(api.projects.getFileUrl, {
-    id: project?.videoFileId as Id<'_storage'>,
-  });
+  const fileUrl = useQuery(
+    api.projects.getFileUrl,
+    project?.videoFileId ? { id: project.videoFileId as Id<'_storage'> } : 'skip'
+  );
 
   const player = useVideoPlayer(fileUrl || null, (player) => {
     player.loop = true;
+    player.timeUpdateEventInterval = 1;
+    player.play();
   });
 
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
@@ -75,10 +92,26 @@ const Page = () => {
     if (player) {
       const interval = setInterval(() => {
         setCurrentTime(player.currentTime);
-      }, 1000);
+      }, 10); // Update every 100ms for better accuracy
       return () => clearInterval(interval);
     }
   }, [player]);
+
+  // Load caption settings from project
+  useEffect(() => {
+    if (project?.captionSettings) {
+      setCaptionSettings(project.captionSettings);
+    }
+  }, [project?.captionSettings]);
+
+  // Update caption settings in Convex
+  const handleCaptionSettingsChange = (newSettings: typeof captionSettings) => {
+    setCaptionSettings(newSettings);
+    updateCaptionSettings({
+      id: id as Id<'projects'>,
+      settings: newSettings,
+    });
+  };
 
   const formatTime = (timeInSeconds: number) => {
     const minutes = Math.floor(timeInSeconds / 60);
@@ -184,28 +217,67 @@ const Page = () => {
       </View>
 
       {/* Bottom Bar */}
-      <View className="absolute bottom-0 left-0 right-0 flex-row justify-around items-center p-4 bg-[#1A1A1A]">
-        <TouchableOpacity
-          onPress={() => setShowCaptionControls(!showCaptionControls)}
-          disabled={isGenerating || project.status === 'processing'}
-          className="items-center">
-          <MaterialIcons name="closed-caption" size={24} color="white" />
-          <Text className="text-white text-sm mt-1">Captions</Text>
-          {isGenerating && <ActivityIndicator size="small" className="absolute -top-2 -right-2" />}
-        </TouchableOpacity>
+      <View className="absolute bottom-0 left-0 right-0 p-6 bg-[#1A1A1A]">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="flex-row"
+          contentContainerStyle={{ paddingHorizontal: 4 }}>
+          <TouchableOpacity
+            onPress={handleGenerateCaptions}
+            disabled={isGenerating || project.status === 'processing'}
+            className={`items-center mr-8 rounded-full p-4 ${isGenerating || project.status === 'processing' ? 'bg-gray-400' : 'bg-white'}`}>
+            <MaterialIcons name="auto-awesome" size={28} color="#1A1A1A" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setShowCaptionControls(!showCaptionControls)}
+            disabled={isGenerating || project.status === 'processing'}
+            className="items-center mr-8">
+            <MaterialIcons
+              name="closed-caption"
+              size={28}
+              color={isGenerating || project.status === 'processing' ? '#9CA3AF' : 'white'}
+            />
+            <Text
+              className={`text-sm mt-1 ${isGenerating || project.status === 'processing' ? 'text-gray-400' : 'text-white'}`}>
+              Captions
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="items-center mr-8">
+            <MaterialIcons name="style" size={28} color="white" />
+            <Text className="text-white text-sm mt-1">Style</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="items-center mr-8">
+            <MaterialIcons name="aspect-ratio" size={28} color="white" />
+            <Text className="text-white text-sm mt-1">Scale</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="items-center mr-8">
+            <MaterialIcons name="zoom-in" size={28} color="white" />
+            <Text className="text-white text-sm mt-1">Zoom</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="items-center">
+            <FontAwesome name="microphone" size={28} color="white" />
+            <Text className="text-white text-sm mt-1">AI Dub</Text>
+          </TouchableOpacity>
+        </ScrollView>
 
         {/* Caption Controls */}
         {showCaptionControls && (
-          <View className="absolute bottom-20 left-0 right-0 bg-[#2A2A2A] p-4 rounded-t-xl">
+          <View className="absolute bottom-24 left-0 right-0 bg-[#2A2A2A] p-4 rounded-t-xl mx-4">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-white">Size</Text>
               <View className="flex-row items-center">
                 <TouchableOpacity
                   onPress={() =>
-                    setCaptionSettings((prev) => ({
-                      ...prev,
-                      fontSize: Math.max(16, prev.fontSize - 2),
-                    }))
+                    handleCaptionSettingsChange({
+                      ...captionSettings,
+                      fontSize: Math.max(16, captionSettings.fontSize - 2),
+                    })
                   }
                   className="bg-[#3A3A3A] p-2 rounded-full mr-2">
                   <Ionicons name="remove" size={16} color="white" />
@@ -213,10 +285,10 @@ const Page = () => {
                 <Text className="text-white mx-2">{captionSettings.fontSize}</Text>
                 <TouchableOpacity
                   onPress={() =>
-                    setCaptionSettings((prev) => ({
-                      ...prev,
-                      fontSize: Math.min(48, prev.fontSize + 2),
-                    }))
+                    handleCaptionSettingsChange({
+                      ...captionSettings,
+                      fontSize: Math.min(48, captionSettings.fontSize + 2),
+                    })
                   }
                   className="bg-[#3A3A3A] p-2 rounded-full">
                   <Ionicons name="add" size={16} color="white" />
@@ -229,7 +301,12 @@ const Page = () => {
                 {(['top', 'middle', 'bottom'] as const).map((pos) => (
                   <TouchableOpacity
                     key={pos}
-                    onPress={() => setCaptionSettings((prev) => ({ ...prev, position: pos }))}
+                    onPress={() =>
+                      handleCaptionSettingsChange({
+                        ...captionSettings,
+                        position: pos,
+                      })
+                    }
                     className={`p-2 rounded-full mx-1 ${captionSettings.position === pos ? 'bg-primary' : 'bg-[#3A3A3A]'}`}>
                     <Ionicons
                       name={pos === 'top' ? 'arrow-up' : pos === 'middle' ? 'remove' : 'arrow-down'}
@@ -246,7 +323,12 @@ const Page = () => {
                 {['#ffffff', '#ff0000', '#00ff00', '#0000ff'].map((color) => (
                   <TouchableOpacity
                     key={color}
-                    onPress={() => setCaptionSettings((prev) => ({ ...prev, color }))}
+                    onPress={() =>
+                      handleCaptionSettingsChange({
+                        ...captionSettings,
+                        color,
+                      })
+                    }
                     className={`w-8 h-8 rounded-full mx-1 ${captionSettings.color === color ? 'border-2 border-white' : ''}`}
                     style={{ backgroundColor: color }}
                   />
@@ -255,47 +337,9 @@ const Page = () => {
             </View>
           </View>
         )}
-
-        <TouchableOpacity className="items-center">
-          <MaterialIcons name="style" size={24} color="white" />
-          <Text className="text-white text-sm mt-1">Style</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="items-center">
-          <MaterialIcons name="aspect-ratio" size={24} color="white" />
-          <Text className="text-white text-sm mt-1">Scale</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="items-center">
-          <MaterialIcons name="zoom-in" size={24} color="white" />
-          <Text className="text-white text-sm mt-1">Zoom</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="items-center">
-          <FontAwesome name="microphone" size={24} color="white" />
-          <Text className="text-white text-sm mt-1">AI Dub</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  captionsContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    // backgroundColor: 'green',
-  },
-  captionText: {
-    textAlign: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 8,
-    borderRadius: 4,
-  },
-});
 
 export default Page;

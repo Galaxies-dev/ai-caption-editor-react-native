@@ -109,6 +109,30 @@ export const updateCaptions = mutation({
   },
 });
 
+// Update caption settings
+export const updateCaptionSettings = mutation({
+  args: {
+    id: v.id('projects'),
+    settings: v.object({
+      fontSize: v.number(),
+      position: v.union(v.literal('top'), v.literal('middle'), v.literal('bottom')),
+      color: v.string(),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db.get(args.id);
+
+    if (!existing) {
+      throw new ConvexError('Project not found');
+    }
+
+    await ctx.db.patch(args.id, {
+      captionSettings: args.settings,
+      lastUpdate: Date.now(),
+    });
+  },
+});
+
 // Delete a project
 export const remove = mutation({
   args: { id: v.id('projects') },
@@ -128,8 +152,11 @@ export const remove = mutation({
 
 // Get a file URL from storage
 export const getFileUrl = query({
-  args: { id: v.id('_storage') },
+  args: { id: v.optional(v.id('_storage')) },
   handler: async (ctx, args) => {
+    if (!args.id) {
+      throw new ConvexError('File ID is required');
+    }
     return await ctx.storage.getUrl(args.id);
   },
 });
