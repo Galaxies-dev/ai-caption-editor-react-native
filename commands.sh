@@ -9,6 +9,7 @@ bunx expo install expo-checkbox
 bunx expo install expo-linear-gradient
 bunx expo install expo-build-properties
 bunx expo install expo-media-library
+bunx expo install expo-video
 
 bun install @react-navigation/drawer
 bun install @clerk/clerk-expo expo-secure-store
@@ -19,3 +20,5 @@ bun install convex
 bun install @clerk/backend 
 bunx convex dev
 
+bun install elevenlabs
+bun install fs

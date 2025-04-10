@@ -49,14 +49,17 @@ const Layout = () => {
           presentation: 'fullScreenModal',
           animation: 'fade',
           headerLeft: () => (
-            <Pressable onPress={() => router.dismissAll()}>
+            <Pressable
+              onPress={() => router.dismissAll()}
+              className="bg-neutral-800 p-2 rounded-xl">
               <Ionicons name="close" size={24} color="white" />
             </Pressable>
           ),
-          headerStyle: {
-            backgroundColor: (twFullConfig.theme.colors as any).dark,
-          },
-          headerTitle: 'Project',
+          headerTransparent: true,
+          // headerStyle: {
+          //   backgroundColor: (twFullConfig.theme.colors as any).dark,
+          // },
+          // headerTitle: '',
           headerTitleStyle: {
             color: 'white',
           },

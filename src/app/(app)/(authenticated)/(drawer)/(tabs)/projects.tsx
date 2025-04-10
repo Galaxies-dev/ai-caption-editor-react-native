@@ -8,7 +8,6 @@ import { Doc } from '@/convex/_generated/dataModel';
 
 const Page = () => {
   const projects = useQuery(api.projects.list);
-  console.log('🚀 ~ Page ~ projects:', projects);
 
   if (projects === undefined) {
     return (

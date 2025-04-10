@@ -6,8 +6,17 @@ const captionSegmentValidator = v.object({
   text: v.string(),
   start: v.number(),
   end: v.number(),
-  type: v.union(v.literal('word'), v.literal('spacing')),
+  type: v.union(v.literal('word'), v.literal('spacing'), v.literal('audio_event')),
   speaker_id: v.string(),
+  characters: v.optional(
+    v.array(
+      v.object({
+        text: v.string(),
+        start: v.number(),
+        end: v.number(),
+      })
+    )
+  ),
 });
 
 export const User = {
@@ -27,7 +36,12 @@ export default defineSchema({
     videoFileId: v.id('_storage'), // Reference to stored video file
     language: v.optional(v.string()),
     captions: v.optional(v.array(captionSegmentValidator)),
-    status: v.union(v.literal('processing'), v.literal('ready'), v.literal('failed')),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('processing'),
+      v.literal('ready'),
+      v.literal('failed')
+    ),
     error: v.optional(v.string()),
   }).index('by_lastUpdate', ['lastUpdate']),
 });

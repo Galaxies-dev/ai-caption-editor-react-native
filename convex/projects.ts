@@ -125,3 +125,11 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+// Get a file URL from storage
+export const getFileUrl = query({
+  args: { id: v.id('_storage') },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.id);
+  },
+});
