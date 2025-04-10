@@ -96,7 +96,7 @@ router.post('/', async (req: Request<{}, {}, TranscodeRequest>, res: Response) =
     const { inputUrl, outputFormat, captions, captionSettings } = req.body;
 
     // Save request body to file
-    await saveRequestToFile(req.body);
+    // await saveRequestToFile(req.body);
 
     if (!inputUrl || !outputFormat) {
       return res.status(400).json({ error: 'Missing required parameters' });
