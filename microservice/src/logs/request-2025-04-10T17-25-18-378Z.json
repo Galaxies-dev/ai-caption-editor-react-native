@@ -1,0 +1,312 @@
+{
+  "inputUrl": "https://hearty-mockingbird-647.convex.cloud/api/storage/29b4f53f-549e-4d87-ba99-aa25b52c5e3a",
+  "outputFormat": "mp4",
+  "captions": [
+    {
+      "end": 1.48,
+      "speaker_id": "speaker_1",
+      "start": 0.859,
+      "text": "This",
+      "type": "word"
+    },
+    {
+      "end": 1.519,
+      "speaker_id": "speaker_1",
+      "start": 1.48,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 1.639,
+      "speaker_id": "speaker_1",
+      "start": 1.519,
+      "text": "is",
+      "type": "word"
+    },
+    {
+      "end": 1.659,
+      "speaker_id": "speaker_1",
+      "start": 1.639,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 1.839,
+      "speaker_id": "speaker_1",
+      "start": 1.659,
+      "text": "an",
+      "type": "word"
+    },
+    {
+      "end": 1.86,
+      "speaker_id": "speaker_1",
+      "start": 1.839,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 2.139,
+      "speaker_id": "speaker_1",
+      "start": 1.86,
+      "text": "epic",
+      "type": "word"
+    },
+    {
+      "end": 2.24,
+      "speaker_id": "speaker_1",
+      "start": 2.139,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 2.719,
+      "speaker_id": "speaker_1",
+      "start": 2.24,
+      "text": "captions",
+      "type": "word"
+    },
+    {
+      "end": 2.74,
+      "speaker_id": "speaker_1",
+      "start": 2.719,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 3.119,
+      "speaker_id": "speaker_1",
+      "start": 2.74,
+      "text": "clone",
+      "type": "word"
+    },
+    {
+      "end": 3.24,
+      "speaker_id": "speaker_1",
+      "start": 3.119,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 3.539,
+      "speaker_id": "speaker_1",
+      "start": 3.24,
+      "text": "with",
+      "type": "word"
+    },
+    {
+      "end": 3.579,
+      "speaker_id": "speaker_1",
+      "start": 3.539,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 3.939,
+      "speaker_id": "speaker_1",
+      "start": 3.579,
+      "text": "React",
+      "type": "word"
+    },
+    {
+      "end": 3.959,
+      "speaker_id": "speaker_1",
+      "start": 3.939,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 4.52,
+      "speaker_id": "speaker_1",
+      "start": 3.959,
+      "text": "Native,",
+      "type": "word"
+    },
+    {
+      "end": 4.599,
+      "speaker_id": "speaker_1",
+      "start": 4.52,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 5.379,
+      "speaker_id": "speaker_1",
+      "start": 4.599,
+      "text": "ElevenLabs,",
+      "type": "word"
+    },
+    {
+      "end": 5.719,
+      "speaker_id": "speaker_1",
+      "start": 5.379,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 6.399,
+      "speaker_id": "speaker_1",
+      "start": 5.719,
+      "text": "Convex,",
+      "type": "word"
+    },
+    {
+      "end": 6.5,
+      "speaker_id": "speaker_1",
+      "start": 6.399,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 7,
+      "speaker_id": "speaker_1",
+      "start": 6.5,
+      "text": "Clerk,",
+      "type": "word"
+    },
+    {
+      "end": 7,
+      "speaker_id": "speaker_1",
+      "start": 7,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 7.54,
+      "speaker_id": "speaker_1",
+      "start": 7,
+      "text": "Sentry,",
+      "type": "word"
+    },
+    {
+      "end": 7.779,
+      "speaker_id": "speaker_1",
+      "start": 7.54,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 8.039,
+      "speaker_id": "speaker_1",
+      "start": 7.779,
+      "text": "and",
+      "type": "word"
+    },
+    {
+      "end": 8.139,
+      "speaker_id": "speaker_1",
+      "start": 8.039,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 8.46,
+      "speaker_id": "speaker_1",
+      "start": 8.139,
+      "text": "only",
+      "type": "word"
+    },
+    {
+      "end": 8.699,
+      "speaker_id": "speaker_1",
+      "start": 8.46,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 8.939,
+      "speaker_id": "speaker_1",
+      "start": 8.699,
+      "text": "the",
+      "type": "word"
+    },
+    {
+      "end": 8.939,
+      "speaker_id": "speaker_1",
+      "start": 8.939,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 9.939,
+      "speaker_id": "speaker_1",
+      "start": 8.939,
+      "text": "best-in-class",
+      "type": "word"
+    },
+    {
+      "end": 10.079,
+      "speaker_id": "speaker_1",
+      "start": 9.939,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 10.499,
+      "speaker_id": "speaker_1",
+      "start": 10.079,
+      "text": "tools.",
+      "type": "word"
+    },
+    {
+      "end": 10.599,
+      "speaker_id": "speaker_1",
+      "start": 10.499,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 10.699,
+      "speaker_id": "speaker_1",
+      "start": 10.599,
+      "text": "And",
+      "type": "word"
+    },
+    {
+      "end": 10.719,
+      "speaker_id": "speaker_1",
+      "start": 10.699,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 10.8,
+      "speaker_id": "speaker_1",
+      "start": 10.719,
+      "text": "of",
+      "type": "word"
+    },
+    {
+      "end": 10.819,
+      "speaker_id": "speaker_1",
+      "start": 10.8,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 11.039,
+      "speaker_id": "speaker_1",
+      "start": 10.819,
+      "text": "course,",
+      "type": "word"
+    },
+    {
+      "end": 11.139,
+      "speaker_id": "speaker_1",
+      "start": 11.039,
+      "text": " ",
+      "type": "spacing"
+    },
+    {
+      "end": 11.579,
+      "speaker_id": "speaker_1",
+      "start": 11.139,
+      "text": "Expo.",
+      "type": "word"
+    }
+  ],
+  "captionSettings": {
+    "fontSize": 36,
+    "position": "bottom",
+    "color": "#ff0000"
+  }
+}

@@ -1,7 +1,14 @@
 import { v } from 'convex/values';
-import { mutation, query, action } from './_generated/server';
-import { Doc, Id } from './_generated/dataModel';
+import { mutation, query, action, internalMutation, internalQuery } from './_generated/server';
 import { ConvexError } from 'convex/values';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import * as os from 'node:os';
+import { spawn } from 'child_process';
+import { internal } from './_generated/api';
+import { Id } from './_generated/dataModel';
+
+// import { Blob } from 'node:buffer';
 
 // Generate a URL to upload a video file
 export const generateUploadUrl = mutation({
@@ -120,6 +127,9 @@ export const updateCaptionSettings = mutation({
     }),
   },
   handler: async (ctx, args) => {
+    console.log('Updating caption settings for project:', args.id);
+    console.log('New settings:', args.settings);
+
     const existing = await ctx.db.get(args.id);
 
     if (!existing) {
@@ -130,6 +140,9 @@ export const updateCaptionSettings = mutation({
       captionSettings: args.settings,
       lastUpdate: Date.now(),
     });
+
+    console.log('Caption settings updated successfully');
+    return args.settings;
   },
 });
 
@@ -158,5 +171,32 @@ export const getFileUrl = query({
       throw new ConvexError('File ID is required');
     }
     return await ctx.storage.getUrl(args.id);
+  },
+});
+
+export const getFileUrlById = internalQuery({
+  args: { id: v.id('_storage') },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.id);
+  },
+});
+
+export const getProjectById = internalQuery({
+  args: { id: v.id('projects') },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id);
+  },
+});
+
+export const updateProjectById = internalMutation({
+  args: {
+    id: v.id('projects'),
+    generatedVideoFileId: v.optional(v.id('_storage')),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, {
+      generatedVideoFileId: args.generatedVideoFileId,
+      lastUpdate: Date.now(),
+    });
   },
 });

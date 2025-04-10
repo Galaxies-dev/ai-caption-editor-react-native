@@ -22,3 +22,4 @@ bunx convex dev
 
 bun install elevenlabs
 bun install fs
+bun install ffmpeg-static

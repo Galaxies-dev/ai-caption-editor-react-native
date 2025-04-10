@@ -1,4 +1,12 @@
-import { View, Text, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  Linking,
+} from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQuery, useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -8,6 +16,8 @@ import { Id } from '@/convex/_generated/dataModel';
 import { useVideoPlayer, VideoView, VideoPlayerStatus } from 'expo-video';
 import { useEvent, useEventListener } from 'expo';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
 
 type CaptionPosition = 'top' | 'middle' | 'bottom';
 
@@ -62,15 +72,18 @@ const DEFAULT_CAPTION_SETTINGS: CaptionSettings = {
 const Page = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [showCaptionControls, setShowCaptionControls] = useState(false);
   const [captionSettings, setCaptionSettings] = useState<CaptionSettings>(DEFAULT_CAPTION_SETTINGS);
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
   const project = useQuery(api.projects.get, { id: id as Id<'projects'> });
   const updateProject = useMutation(api.projects.update);
   const updateCaptions = useMutation(api.projects.updateCaptions);
   const updateCaptionSettings = useMutation(api.projects.updateCaptionSettings);
   const processVideo = useAction(api.elevenlabs.processVideo);
+  const exportVideo = useAction(api.exportvideo.generateCaptionedVideo);
 
   // Get the file URL from Convex storage
   const fileUrl = useQuery(
@@ -105,12 +118,32 @@ const Page = () => {
   }, [project?.captionSettings]);
 
   // Update caption settings in Convex
-  const handleCaptionSettingsChange = (newSettings: typeof captionSettings) => {
-    setCaptionSettings(newSettings);
-    updateCaptionSettings({
-      id: id as Id<'projects'>,
-      settings: newSettings,
-    });
+  const handleCaptionSettingsChange = async (newSettings: typeof captionSettings) => {
+    if (isUpdatingSettings) return; // Prevent multiple simultaneous updates
+
+    try {
+      setIsUpdatingSettings(true);
+      console.log('Updating caption settings:', newSettings);
+
+      // Update local state immediately for better UX
+      setCaptionSettings(newSettings);
+
+      // Call the mutation and wait for the result
+      const result = await updateCaptionSettings({
+        id: id as Id<'projects'>,
+        settings: newSettings,
+      });
+
+      console.log('Caption settings updated successfully:', result);
+    } catch (error) {
+      console.error('Failed to update caption settings:', error);
+      // Revert the local state if the update fails
+      if (project?.captionSettings) {
+        setCaptionSettings(project.captionSettings);
+      }
+    } finally {
+      setIsUpdatingSettings(false);
+    }
   };
 
   const formatTime = (timeInSeconds: number) => {
@@ -159,8 +192,69 @@ const Page = () => {
     }
   };
 
-  const onExportVideo = () => {
-    console.log('Exporting video');
+  const onExportVideo = async () => {
+    if (!project) return;
+
+    try {
+      setIsExporting(true);
+      console.log('Exporting video');
+
+      // Request media library permissions
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        throw new Error('Media library permission not granted');
+      }
+
+      const result = await exportVideo({ id: project._id });
+      console.log('🚀 ~ onExportVideo ~ result:', result);
+
+      if (result) {
+        // Download the video to local filesystem first
+        const fileUri = FileSystem.documentDirectory + `exported_video_${new Date().getTime()}.mp4`;
+        const downloadResult = await FileSystem.downloadAsync(result, fileUri);
+        console.log('🚀 ~ onExportVideo ~ fileUri:', fileUri);
+
+        if (downloadResult.status === 200) {
+          // Save the video to media library
+          const asset = await MediaLibrary.createAssetAsync(downloadResult.uri);
+          console.log('Video saved to media library:', asset);
+
+          // Clean up the temporary file
+          await FileSystem.deleteAsync(fileUri);
+
+          Alert.alert('Video Saved!', 'Would you like to view it?', [
+            {
+              text: 'View in Library',
+              onPress: async () => {
+                try {
+                  // Create an album if it doesn't exist
+                  const album = await MediaLibrary.getAlbumAsync('Captions App');
+                  if (!album) {
+                    await MediaLibrary.createAlbumAsync('Captions App', asset, false);
+                  } else {
+                    console.log('🚀 ~ onPress: ~ album:', album);
+                    console.log('🚀 ~ onPress: ~ asset:', asset);
+                    await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+                  }
+                  // Open the Photos app
+                  await Linking.openURL('photos-redirect://');
+                } catch (error) {
+                  console.error('Error opening video:', error);
+                }
+              },
+            },
+            {
+              text: 'Close',
+              style: 'cancel',
+            },
+          ]);
+        }
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   if (!project) {
@@ -177,8 +271,13 @@ const Page = () => {
         options={{
           title: project.name,
           headerRight: () => (
-            <TouchableOpacity onPress={onExportVideo} className="bg-primary rounded-xl p-2 px-4">
-              <Text className="text-white font-Poppins_600SemiBold text-lg">Export</Text>
+            <TouchableOpacity
+              onPress={onExportVideo}
+              className={`bg-primary rounded-xl p-2 px-4 ${isExporting ? 'opacity-50' : ''}`}
+              disabled={isExporting}>
+              <Text className="text-white font-Poppins_600SemiBold text-lg">
+                {isExporting ? 'Exporting...' : 'Export'}
+              </Text>
             </TouchableOpacity>
           ),
         }}
@@ -279,7 +378,8 @@ const Page = () => {
                       fontSize: Math.max(16, captionSettings.fontSize - 2),
                     })
                   }
-                  className="bg-[#3A3A3A] p-2 rounded-full mr-2">
+                  disabled={isUpdatingSettings}
+                  className={`bg-[#3A3A3A] p-2 rounded-full mr-2 ${isUpdatingSettings ? 'opacity-50' : ''}`}>
                   <Ionicons name="remove" size={16} color="white" />
                 </TouchableOpacity>
                 <Text className="text-white mx-2">{captionSettings.fontSize}</Text>
@@ -290,7 +390,8 @@ const Page = () => {
                       fontSize: Math.min(48, captionSettings.fontSize + 2),
                     })
                   }
-                  className="bg-[#3A3A3A] p-2 rounded-full">
+                  disabled={isUpdatingSettings}
+                  className={`bg-[#3A3A3A] p-2 rounded-full ${isUpdatingSettings ? 'opacity-50' : ''}`}>
                   <Ionicons name="add" size={16} color="white" />
                 </TouchableOpacity>
               </View>
@@ -307,7 +408,8 @@ const Page = () => {
                         position: pos,
                       })
                     }
-                    className={`p-2 rounded-full mx-1 ${captionSettings.position === pos ? 'bg-primary' : 'bg-[#3A3A3A]'}`}>
+                    disabled={isUpdatingSettings}
+                    className={`p-2 rounded-full mx-1 ${captionSettings.position === pos ? 'bg-primary' : 'bg-[#3A3A3A]'} ${isUpdatingSettings ? 'opacity-50' : ''}`}>
                     <Ionicons
                       name={pos === 'top' ? 'arrow-up' : pos === 'middle' ? 'remove' : 'arrow-down'}
                       size={16}
@@ -329,7 +431,8 @@ const Page = () => {
                         color,
                       })
                     }
-                    className={`w-8 h-8 rounded-full mx-1 ${captionSettings.color === color ? 'border-2 border-white' : ''}`}
+                    disabled={isUpdatingSettings}
+                    className={`w-8 h-8 rounded-full mx-1 ${captionSettings.color === color ? 'border-2 border-white' : ''} ${isUpdatingSettings ? 'opacity-50' : ''}`}
                     style={{ backgroundColor: color }}
                   />
                 ))}
@@ -338,6 +441,14 @@ const Page = () => {
           </View>
         )}
       </View>
+
+      {/* Loading Overlay */}
+      {isExporting && (
+        <View className="absolute inset-0 bg-black/50 items-center justify-center z-50">
+          <ActivityIndicator size="large" color="#fff" />
+          <Text className="text-white mt-4 font-Poppins_600SemiBold">Exporting video...</Text>
+        </View>
+      )}
     </View>
   );
 };
