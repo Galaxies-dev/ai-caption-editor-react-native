@@ -139,8 +139,8 @@ export default function LoginScreen() {
       {/* Gradient Overlay for Smooth Transition */}
       <LinearGradient
         colors={['rgba(0,0,0,0)', 'black']} // Fade from transparent to the background black
-        className="absolute left-0 right-0 h-[150px]" // Height of the gradient fade
-        style={{ top: 200 - 150 }} // Position gradient at the bottom of the 400px blur area
+        className="absolute left-0 right-0 h-[400px]" // Height of the gradient fade
+        style={{ top: 0 }} // Position gradient at the bottom of the 400px blur area
       />
 
       {/* Main Content Area */}

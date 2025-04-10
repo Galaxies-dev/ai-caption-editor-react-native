@@ -56,17 +56,6 @@ const Page = () => {
             </TouchableOpacity>
           </View>
         ))}
-        {/* Users are allowed to have up to 10 passkeys */}
-        <Button
-          title="Add Passkey"
-          onPress={async () => {
-            try {
-              await user?.createPasskey();
-            } catch (error) {
-              console.error(error);
-            }
-          }}
-        />
       </View>
     </View>
   );

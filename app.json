@@ -14,13 +14,21 @@
       "associatedDomains": [
         "applinks:pleased-haddock-38.clerk.accounts.dev",
         "webcredentials:pleased-haddock-38.clerk.accounts.dev"
-      ]
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -43,7 +51,7 @@
         "expo-build-properties",
         {
           "ios": {
-            "deploymentTarget": "16.0" //  iOS Support passkeys from version iOS 16+
+            "deploymentTarget": "16.0"
           }
         }
       ],
@@ -58,6 +66,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "2201c515-102a-4016-b8a4-277368ee6757"
+      }
     }
   }
 }
