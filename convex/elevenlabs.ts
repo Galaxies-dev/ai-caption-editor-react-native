@@ -147,7 +147,9 @@ export const generateSpeech = action({
 export const getVoices = action({
   handler: async (ctx) => {
     try {
-      const voices = await client.voices.getAll();
+      const voices = await client.voices.search({
+        category: 'premade',
+      });
       return voices.voices.map((voice) => ({
         id: voice.voice_id,
         name: voice.name,

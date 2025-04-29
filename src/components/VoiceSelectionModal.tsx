@@ -56,9 +56,7 @@ export const VoiceSelectionModal = ({
           typeof voice.id === 'string' &&
           typeof voice.name === 'string' &&
           typeof voice.previewUrl === 'string' &&
-          typeof voice.description === 'string' &&
-          typeof voice.category === 'string' &&
-          voice.category.toLowerCase() !== 'professional' // Filter out professional voices
+          typeof voice.description === 'string'
       );
       console.log('Valid voices:', validVoices);
       setVoices(validVoices);
