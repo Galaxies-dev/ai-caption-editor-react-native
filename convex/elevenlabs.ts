@@ -21,26 +21,19 @@ export const processVideo = action({
       if (!file) {
         throw new Error('File not found in storage');
       }
-      console.log('file', file);
 
-      // Create a temporary file path
-      const tempFilePath = `/tmp/${args.videoId}.mp4`;
       const response = await fetch(file);
       const videoBlob = new Blob([await response.arrayBuffer()], { type: 'video/mp4' });
 
       // Call ElevenLabs Speech to Text API
       console.log('Processing video with ElevenLabs');
       const result = await client.speechToText.convert({
-        // file: fs.createReadStream(tempFilePath),
         file: videoBlob,
         model_id: 'scribe_v1',
         language_code: 'eng',
       });
-      console.log('Speech to text conversion completed');
 
-      // Clean up temporary file
-      // await fs.promises.unlink(tempFilePath);
-      // console.log('Temporary file cleaned up');
+      console.log('Speech to text conversion completed');
 
       // Transform and filter words to match our schema
       const transformedWords = result.words
@@ -72,6 +65,7 @@ export const generateSpeech = action({
   },
   handler: async (ctx, args) => {
     try {
+      console.log('Generating speech');
       // Get the project
       const project = await ctx.runQuery(internal.projects.getProjectById, {
         id: args.projectId,
@@ -90,22 +84,55 @@ export const generateSpeech = action({
         model_id: 'eleven_monolingual_v1',
         voice_settings: {
           stability: 0.5,
-          similarity_boost: 0.75,
         },
+        output_format: 'mp3_44100_128',
       });
 
-      // Convert audio response to blob
-      const audioBuffer = Buffer.from(await audioResponse);
+      console.log('Audio response generated');
+
+      // Convert the Readable stream to a buffer
+      const chunks: Buffer[] = [];
+      for await (const chunk of audioResponse) {
+        chunks.push(Buffer.from(chunk));
+      }
+      const audioBuffer = Buffer.concat(chunks);
+
+      // Create a Blob from the buffer
       const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
 
       // Store audio file in Convex storage
       const audioFileId = await ctx.storage.store(audioBlob);
 
-      // Update project with audio file ID
+      console.log('Audio file stored in Convex storage');
+
+      // Generate captions from the audio file
+      console.log('Generating captions from audio');
+      const sttResult = await client.speechToText.convert({
+        file: audioBlob,
+        model_id: 'scribe_v1',
+        language_code: 'eng',
+      });
+
+      // Transform and filter words to match our schema
+      const transformedWords = sttResult.words
+        .filter((word) => word.type !== 'audio_event')
+        .map((word) => ({
+          text: word.text,
+          start: word.start ?? 0,
+          end: word.end ?? (word.start ?? 0) + 0.1,
+          type: word.type as 'word' | 'spacing',
+          speaker_id: word.speaker_id ?? 'speaker_1',
+        }));
+
+      // Update project with audio file ID and captions
       await ctx.runMutation(internal.projects.updateProjectById, {
         id: args.projectId,
         audioFileId,
+        words: transformedWords,
+        language_code: sttResult.language_code,
       });
+
+      console.log('Project updated with audio file ID and captions');
 
       // Return the URL to the audio file
       return await ctx.storage.getUrl(audioFileId);

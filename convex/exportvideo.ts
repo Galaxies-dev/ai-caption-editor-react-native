@@ -21,6 +21,7 @@ export const generateCaptionedVideo = action({
       hasProject: !!project,
       hasCaptions: project?.captions?.length,
       hasCaptionSettings: !!project?.captionSettings,
+      hasAudioFile: !!project?.audioFileId,
     });
 
     if (!project) {
@@ -40,6 +41,20 @@ export const generateCaptionedVideo = action({
       throw new ConvexError('Video URL not found');
     }
 
+    // Get audio URL if it exists
+    let audioUrl: string | undefined;
+    if (project.audioFileId) {
+      const url = await ctx.runQuery(internal.projects.getFileUrlById, {
+        id: project.audioFileId,
+      });
+      if (url) {
+        audioUrl = url;
+        console.log('Retrieved audio URL:', { hasUrl: true });
+      } else {
+        console.log('Audio file exists but URL could not be retrieved');
+      }
+    }
+
     try {
       // Make request to microservice
       console.log('Making request to microservice...: ', MICROSERVICE_URL);
@@ -57,6 +72,7 @@ export const generateCaptionedVideo = action({
             position: project.captionSettings.position,
             color: project.captionSettings.color,
           },
+          audioUrl, // Include audioUrl if it exists
         }),
       });
 

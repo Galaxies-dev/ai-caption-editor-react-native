@@ -28,6 +28,7 @@ interface TranscodeRequest {
   outputFormat: string;
   captions?: Caption[];
   captionSettings?: CaptionSettings;
+  audioUrl?: string; // Optional URL to an audio file to replace the original audio
 }
 
 // Create logs directory if it doesn't exist
@@ -93,7 +94,7 @@ function convertHexToFFmpegColor(hexColor: string): string {
 
 router.post('/', async (req: Request<{}, {}, TranscodeRequest>, res: Response) => {
   try {
-    const { inputUrl, outputFormat, captions, captionSettings } = req.body;
+    const { inputUrl, outputFormat, captions, captionSettings, audioUrl } = req.body;
 
     // Save request body to file
     // await saveRequestToFile(req.body);
@@ -107,6 +108,11 @@ router.post('/', async (req: Request<{}, {}, TranscodeRequest>, res: Response) =
     const outputPath = path.join(tempDir, `output.${outputFormat}`);
     let command = ffmpeg(inputUrl);
 
+    // If an audio file is provided, add it to the command
+    if (audioUrl) {
+      command = command.input(audioUrl).audioCodec('aac').outputOptions(['-map 0:v', '-map 1:a']); // Use video from first input, audio from second input
+    }
+
     // If captions are provided, create and apply them
     if (captions && captionSettings) {
       const srtPath = path.join(tempDir, 'captions.srt');
@@ -116,7 +122,6 @@ router.post('/', async (req: Request<{}, {}, TranscodeRequest>, res: Response) =
       const position = getVerticalPosition(captionSettings.position);
 
       // Add subtitle filter with styling
-
       const alignment =
         captionSettings.position === 'top' ? 6 : captionSettings.position === 'middle' ? 10 : 2;
 

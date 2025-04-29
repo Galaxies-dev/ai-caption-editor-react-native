@@ -8,6 +8,8 @@ import {
   Linking,
   Modal,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQuery, useAction } from 'convex/react';
@@ -24,7 +26,10 @@ import {
   CaptionSettings,
   DEFAULT_CAPTION_SETTINGS,
 } from '@/components/CaptionsOverlay';
+import { VideoControls } from '@/components/VideoControls';
+import { CaptionControls } from '@/components/CaptionControls';
 import { formatTime } from '@/utils/formatDuration';
+import { useAudioPlayer } from 'expo-audio';
 
 const Page = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -54,12 +59,18 @@ const Page = () => {
     project?.videoFileId ? { id: project.videoFileId as Id<'_storage'> } : 'skip'
   );
 
+  // Get the audio file URL from Convex storage
+  const audioFileUrl = useQuery(
+    api.projects.getFileUrl,
+    project?.audioFileId ? { id: project.audioFileId as Id<'_storage'> } : 'skip'
+  );
+
   const player = useVideoPlayer(fileUrl || null, (player) => {
     player.loop = true;
     player.timeUpdateEventInterval = 1;
-    // player.play();
   });
 
+  const audioPlayer = useAudioPlayer(audioFileUrl || null);
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
 
   // Update currentTime state when player's currentTime changes
@@ -71,6 +82,19 @@ const Page = () => {
       return () => clearInterval(interval);
     }
   }, [player]);
+
+  // Sync audio with video playback
+  useEffect(() => {
+    if (audioPlayer && player) {
+      if (isPlaying) {
+        player.muted = true;
+        audioPlayer.play();
+        player.currentTime = audioPlayer.currentTime;
+      } else {
+        audioPlayer.pause();
+      }
+    }
+  }, [isPlaying, audioPlayer, player]);
 
   // Load caption settings from project
   useEffect(() => {
@@ -92,7 +116,6 @@ const Page = () => {
 
     try {
       setIsUpdatingSettings(true);
-      console.log('Updating caption settings:', newSettings);
 
       // Update local state immediately for better UX
       setCaptionSettings(newSettings);
@@ -102,8 +125,6 @@ const Page = () => {
         id: id as Id<'projects'>,
         settings: newSettings,
       });
-
-      console.log('Caption settings updated successfully:', result);
     } catch (error) {
       console.error('Failed to update caption settings:', error);
       // Revert the local state if the update fails
@@ -129,14 +150,11 @@ const Page = () => {
 
       // Get the video URL from storage
       const videoId = await project.videoFileId;
-      console.log('🚀 ~ handleGenerateCaptions ~ videoUrl:', videoId);
 
       // Call ElevenLabs API
       const result = await processVideo({
         videoId,
       });
-
-      console.log('🚀 ~ handleGenerateCaptions ~ result:', result);
 
       await updateCaptions({
         id: project._id,
@@ -223,18 +241,22 @@ const Page = () => {
   const onGenerateSpeech = async () => {
     try {
       setIsGeneratingAudio(true);
+      console.log('Generating speech');
       const audioUrl = await generateSpeech({ projectId: id as Id<'projects'> });
       if (audioUrl) {
         console.log('🚀 ~ onGenerateSpeech ~ audioUrl:', audioUrl);
-        // Play the generated audio using Expo's Audio API
-        // const { sound } = await Audio.Sound.createAsync({ uri: audioUrl });
-        // await sound.playAsync();
+        // Reset video and audio to beginning and start playback
+        if (player) {
+          player.currentTime = 0;
+          player.play();
+        }
       }
     } catch (error) {
       console.error('Failed to generate speech:', error);
       Alert.alert('Error', 'Failed to generate speech. Please try again.');
     } finally {
       setIsGeneratingAudio(false);
+      setShowScriptModal(false);
     }
   };
 
@@ -263,7 +285,6 @@ const Page = () => {
           ),
         }}
       />
-      {/* <Text className="text-2xl font-bold mb-4">Project: {project.name}</Text> */}
 
       {/* Video Player */}
       <View className="mt-28 items-center">
@@ -297,136 +318,22 @@ const Page = () => {
       </View>
 
       {/* Bottom Bar */}
-      <View className="absolute bottom-0 left-0 right-0 p-6 bg-[#1A1A1A]">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="flex-row"
-          contentContainerStyle={{ paddingHorizontal: 4 }}>
-          <TouchableOpacity
-            onPress={handleGenerateCaptions}
-            disabled={isGenerating || project.status === 'processing'}
-            className={`items-center mr-8 rounded-full p-4 ${isGenerating || project.status === 'processing' ? 'bg-gray-400' : 'bg-white'}`}>
-            <MaterialIcons name="auto-awesome" size={28} color="#1A1A1A" />
-          </TouchableOpacity>
+      <VideoControls
+        isGenerating={isGenerating}
+        projectStatus={project.status}
+        onGenerateCaptions={handleGenerateCaptions}
+        onShowCaptionControls={() => setShowCaptionControls(!showCaptionControls)}
+        onShowScriptModal={() => setShowScriptModal(true)}
+      />
 
-          <TouchableOpacity
-            onPress={() => setShowCaptionControls(!showCaptionControls)}
-            disabled={isGenerating || project.status === 'processing'}
-            className="items-center mr-8">
-            <MaterialIcons
-              name="closed-caption"
-              size={28}
-              color={isGenerating || project.status === 'processing' ? '#9CA3AF' : 'white'}
-            />
-            <Text
-              className={`text-sm mt-1 ${isGenerating || project.status === 'processing' ? 'text-gray-400' : 'text-white'}`}>
-              Captions
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => setShowScriptModal(true)} className="items-center mr-8">
-            <MaterialIcons name="description" size={28} color="white" />
-            <Text className="text-white text-sm mt-1">Script</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className="items-center mr-8">
-            <MaterialIcons name="style" size={28} color="white" />
-            <Text className="text-white text-sm mt-1">Style</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className="items-center mr-8">
-            <MaterialIcons name="aspect-ratio" size={28} color="white" />
-            <Text className="text-white text-sm mt-1">Scale</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className="items-center mr-8">
-            <MaterialIcons name="zoom-in" size={28} color="white" />
-            <Text className="text-white text-sm mt-1">Zoom</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className="items-center">
-            <FontAwesome name="microphone" size={28} color="white" />
-            <Text className="text-white text-sm mt-1">AI Dub</Text>
-          </TouchableOpacity>
-        </ScrollView>
-
-        {/* Caption Controls */}
-        {showCaptionControls && (
-          <View className="absolute bottom-24 left-0 right-0 bg-[#2A2A2A] p-4 rounded-t-xl mx-4">
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-white">Size</Text>
-              <View className="flex-row items-center">
-                <TouchableOpacity
-                  onPress={() =>
-                    handleCaptionSettingsChange({
-                      ...captionSettings,
-                      fontSize: Math.max(16, captionSettings.fontSize - 2),
-                    })
-                  }
-                  disabled={isUpdatingSettings}
-                  className={`bg-[#3A3A3A] p-2 rounded-full mr-2 ${isUpdatingSettings ? 'opacity-50' : ''}`}>
-                  <Ionicons name="remove" size={16} color="white" />
-                </TouchableOpacity>
-                <Text className="text-white mx-2">{captionSettings.fontSize}</Text>
-                <TouchableOpacity
-                  onPress={() =>
-                    handleCaptionSettingsChange({
-                      ...captionSettings,
-                      fontSize: Math.min(48, captionSettings.fontSize + 2),
-                    })
-                  }
-                  disabled={isUpdatingSettings}
-                  className={`bg-[#3A3A3A] p-2 rounded-full ${isUpdatingSettings ? 'opacity-50' : ''}`}>
-                  <Ionicons name="add" size={16} color="white" />
-                </TouchableOpacity>
-              </View>
-            </View>
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-white">Position</Text>
-              <View className="flex-row">
-                {(['top', 'middle', 'bottom'] as const).map((pos) => (
-                  <TouchableOpacity
-                    key={pos}
-                    onPress={() =>
-                      handleCaptionSettingsChange({
-                        ...captionSettings,
-                        position: pos,
-                      })
-                    }
-                    disabled={isUpdatingSettings}
-                    className={`p-2 rounded-full mx-1 ${captionSettings.position === pos ? 'bg-primary' : 'bg-[#3A3A3A]'} ${isUpdatingSettings ? 'opacity-50' : ''}`}>
-                    <Ionicons
-                      name={pos === 'top' ? 'arrow-up' : pos === 'middle' ? 'remove' : 'arrow-down'}
-                      size={16}
-                      color="white"
-                    />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-            <View className="flex-row justify-between items-center">
-              <Text className="text-white">Color</Text>
-              <View className="flex-row">
-                {['#ffffff', '#ff0000', '#00ff00', '#0000ff'].map((color) => (
-                  <TouchableOpacity
-                    key={color}
-                    onPress={() =>
-                      handleCaptionSettingsChange({
-                        ...captionSettings,
-                        color,
-                      })
-                    }
-                    disabled={isUpdatingSettings}
-                    className={`w-8 h-8 rounded-full mx-1 ${captionSettings.color === color ? 'border-2 border-white' : ''} ${isUpdatingSettings ? 'opacity-50' : ''}`}
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
-              </View>
-            </View>
-          </View>
-        )}
-      </View>
+      {/* Caption Controls */}
+      {showCaptionControls && (
+        <CaptionControls
+          captionSettings={captionSettings}
+          isUpdatingSettings={isUpdatingSettings}
+          onCaptionSettingsChange={handleCaptionSettingsChange}
+        />
+      )}
 
       {/* Script Modal */}
       <Modal
@@ -434,54 +341,58 @@ const Page = () => {
         transparent={true}
         visible={showScriptModal}
         onRequestClose={() => setShowScriptModal(false)}>
-        <View className="flex-1 justify-end">
-          <View className="bg-[#1A1A1A] rounded-t-3xl p-6 h-3/4">
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-white text-xl font-Poppins_600SemiBold">Add Script</Text>
-              <TouchableOpacity onPress={() => setShowScriptModal(false)}>
-                <Ionicons name="close" size={24} color="white" />
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              className="bg-[#2A2A2A] text-white p-4 rounded-xl h-[60%] mb-4"
-              multiline
-              placeholder="Paste or write your script here..."
-              placeholderTextColor="#666"
-              value={script}
-              onChangeText={setScript}
-              textAlignVertical="top"
-            />
-            <View className="flex-row gap-2">
-              <TouchableOpacity
-                onPress={async () => {
-                  try {
-                    setIsSavingScript(true);
-                    await updateProjectScript({ id: id as Id<'projects'>, script });
-                    setShowScriptModal(false);
-                  } catch (error) {
-                    console.error('Failed to save script:', error);
-                    Alert.alert('Error', 'Failed to save script. Please try again.');
-                  } finally {
-                    setIsSavingScript(false);
-                  }
-                }}
-                disabled={isSavingScript}
-                className={`flex-1 bg-primary p-4 rounded-xl ${isSavingScript ? 'opacity-50' : ''}`}>
-                <Text className="text-white text-center font-Poppins_600SemiBold">
-                  {isSavingScript ? 'Saving...' : 'Save Script'}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={onGenerateSpeech}
-                disabled={isGeneratingAudio || !script}
-                className={`flex-1 bg-[#2A2A2A] p-4 rounded-xl ${isGeneratingAudio || !script ? 'opacity-50' : ''}`}>
-                <Text className="text-white text-center font-Poppins_600SemiBold">
-                  {isGeneratingAudio ? 'Generating...' : 'Generate Speech'}
-                </Text>
-              </TouchableOpacity>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1">
+          <View className="flex-1 justify-end">
+            <View className="bg-[#1A1A1A] rounded-t-3xl p-6 h-1/2">
+              <View className="flex-row justify-between items-center mb-4">
+                <Text className="text-white text-xl font-Poppins_600SemiBold">Add Script</Text>
+                <TouchableOpacity onPress={() => setShowScriptModal(false)}>
+                  <Ionicons name="close" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                className="bg-[#2A2A2A] text-white p-4 rounded-xl h-[60%] mb-4"
+                multiline
+                placeholder="Paste or write your script here..."
+                placeholderTextColor="#666"
+                value={script}
+                onChangeText={setScript}
+                textAlignVertical="top"
+              />
+              <View className="flex-row gap-2">
+                <TouchableOpacity
+                  onPress={async () => {
+                    try {
+                      setIsSavingScript(true);
+                      await updateProjectScript({ id: id as Id<'projects'>, script });
+                      setShowScriptModal(false);
+                    } catch (error) {
+                      console.error('Failed to save script:', error);
+                      Alert.alert('Error', 'Failed to save script. Please try again.');
+                    } finally {
+                      setIsSavingScript(false);
+                    }
+                  }}
+                  disabled={isSavingScript}
+                  className={`flex-1 bg-primary p-4 rounded-xl ${isSavingScript ? 'opacity-50' : ''}`}>
+                  <Text className="text-white text-center font-Poppins_600SemiBold">
+                    {isSavingScript ? 'Saving...' : 'Save Script'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={onGenerateSpeech}
+                  disabled={isGeneratingAudio || !script}
+                  className={`flex-1 bg-[#2A2A2A] p-4 rounded-xl ${isGeneratingAudio || !script ? 'opacity-50' : ''}`}>
+                  <Text className="text-white text-center font-Poppins_600SemiBold">
+                    {isGeneratingAudio ? 'Generating...' : 'Generate Speech'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Loading Overlay */}

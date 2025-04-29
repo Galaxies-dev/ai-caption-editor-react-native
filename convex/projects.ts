@@ -185,12 +185,26 @@ export const updateProjectById = internalMutation({
     id: v.id('projects'),
     generatedVideoFileId: v.optional(v.id('_storage')),
     audioFileId: v.optional(v.id('_storage')),
+    words: v.optional(
+      v.array(
+        v.object({
+          text: v.string(),
+          start: v.number(),
+          end: v.number(),
+          type: v.union(v.literal('word'), v.literal('spacing')),
+          speaker_id: v.string(),
+        })
+      )
+    ),
+    language_code: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.id, {
-      generatedVideoFileId: args.generatedVideoFileId,
-      audioFileId: args.audioFileId,
+    const { id, language_code, words, ...updates } = args;
+    await ctx.db.patch(id, {
+      ...updates,
       lastUpdate: Date.now(),
+      captions: words,
+      language: language_code,
     });
   },
 });

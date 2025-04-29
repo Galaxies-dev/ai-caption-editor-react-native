@@ -10,6 +10,7 @@ bunx expo install expo-linear-gradient
 bunx expo install expo-build-properties
 bunx expo install expo-media-library
 bunx expo install expo-video
+bunx expo install expo-audio
 
 bun install @react-navigation/drawer
 bun install @clerk/clerk-expo expo-secure-store
