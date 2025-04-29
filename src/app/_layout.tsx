@@ -16,6 +16,18 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DefaultTheme, ThemeProvider, DarkTheme } from '@react-navigation/native';
 import { passkeys } from '@clerk/clerk-expo/passkeys';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://aa92b133b648cc042e3a440ebdc42182@o106619.ingest.us.sentry.io/4509236507901952',
+  // Configure Session Replay
+  replaysSessionSampleRate: 1.0,
+  replaysOnErrorSampleRate: 1.0,
+  integrations: [Sentry.mobileReplayIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 SplashScreen.preventAutoHideAsync();
 
@@ -62,17 +74,8 @@ const InitialLayout = () => {
   return <Slot />;
 };
 
-export default function RootLayout() {
+const RootLayout = () => {
   const colorScheme = useColorScheme();
-
-  // Sentry
-  // const ref = useNavigationContainerRef();
-
-  // useEffect(() => {
-  //   if (ref) {
-  //     routingInstrumentation.registerNavigationContainer(ref);
-  //   }
-  // }, [ref]);
 
   return (
     <ClerkProvider
@@ -90,4 +93,6 @@ export default function RootLayout() {
       </ClerkLoaded>
     </ClerkProvider>
   );
-}
+};
+
+export default Sentry.wrap(RootLayout);
