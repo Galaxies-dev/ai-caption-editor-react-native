@@ -22,5 +22,5 @@ bun install @clerk/backend
 bunx convex dev
 
 bun install elevenlabs
-bun install fs
-bun install ffmpeg-static
+
+bunx @sentry/wizard@latest -i reactNative --saas

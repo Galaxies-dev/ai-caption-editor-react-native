@@ -3,7 +3,7 @@ import { useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { Audio, AVPlaybackStatus } from 'expo-av';
 
 interface Voice {
   id: string;
@@ -19,6 +19,61 @@ interface VoiceSelectionModalProps {
   onSelectVoice: (voiceId: string) => void;
 }
 
+const useAudioPlayer = () => {
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, [sound]);
+
+  const playAudio = async (voice: Voice) => {
+    try {
+      // If the voice is already playing, pause it
+      if (isPlaying === voice.id && sound) {
+        await sound.pauseAsync();
+        setIsPlaying(null);
+        return;
+      }
+
+      // Stop any currently playing sound
+      if (sound) {
+        await sound.stopAsync();
+        await sound.unloadAsync();
+      }
+
+      // Load and play the new preview
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: voice.previewUrl },
+        { shouldPlay: true }
+      );
+
+      setSound(newSound);
+      setIsPlaying(voice.id);
+
+      // Reset playing state when finished
+      newSound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
+        if (!status.isLoaded) return;
+        if (status.didJustFinish) {
+          setIsPlaying(null);
+        }
+      });
+    } catch (error) {
+      console.error('Failed to play preview:', error);
+      setIsPlaying(null);
+    }
+  };
+
+  return {
+    playAudio,
+    isPlaying,
+  };
+};
+
 export const VoiceSelectionModal = ({
   visible,
   onClose,
@@ -26,8 +81,7 @@ export const VoiceSelectionModal = ({
 }: VoiceSelectionModalProps) => {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const { playAudio, isPlaying } = useAudioPlayer();
 
   const getVoices = useAction(api.elevenlabs.getVoices);
 
@@ -36,14 +90,6 @@ export const VoiceSelectionModal = ({
       loadVoices();
     }
   }, [visible]);
-
-  useEffect(() => {
-    return sound
-      ? () => {
-          sound.unloadAsync();
-        }
-      : undefined;
-  }, [sound]);
 
   const loadVoices = async () => {
     try {
@@ -62,47 +108,8 @@ export const VoiceSelectionModal = ({
       setVoices(validVoices);
     } catch (error) {
       console.error('Failed to load voices:', error);
-      setIsLoading(false);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const playPreview = async (voice: Voice) => {
-    try {
-      // If the voice is already playing, pause it
-      if (playingVoiceId === voice.id && sound) {
-        console.log('Pausing voice:', voice.name);
-        await sound.pauseAsync();
-        setPlayingVoiceId(null);
-        return;
-      }
-      console.log('Playing voice:', voice.name);
-      // Stop any currently playing sound
-      if (sound) {
-        console.log('Stopping current sound');
-        await sound.stopAsync();
-        await sound.unloadAsync();
-      }
-
-      // Load and play the new preview
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: voice.previewUrl },
-        { shouldPlay: true }
-      );
-      setSound(newSound);
-      setPlayingVoiceId(voice.id);
-
-      // Reset playing state when finished
-      newSound.setOnPlaybackStatusUpdate((status) => {
-        if (!status.isLoaded) return;
-        if (status.didJustFinish) {
-          setPlayingVoiceId(null);
-        }
-      });
-    } catch (error) {
-      console.error('Failed to play preview:', error);
-      setPlayingVoiceId(null);
     }
   };
 
@@ -145,10 +152,10 @@ export const VoiceSelectionModal = ({
                           <Text className="text-primary text-sm mt-1">{voice.category}</Text>
                         </View>
                         <TouchableOpacity
-                          onPress={() => playPreview(voice)}
+                          onPress={() => playAudio(voice)}
                           className="bg-[#3A3A3A] p-3 rounded-full">
                           <Ionicons
-                            name={playingVoiceId === voice.id ? 'pause' : 'play'}
+                            name={isPlaying === voice.id ? 'pause' : 'play'}
                             size={20}
                             color="white"
                           />
