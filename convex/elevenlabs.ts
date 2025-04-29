@@ -77,7 +77,7 @@ export const generateSpeech = action({
 
       // Use default voice if none specified
       const voiceId = args.voiceId || 'EXAVITQu4vr4xnSDxMaL'; // Default voice ID
-
+      console.log('🚀 ~ handler: ~ voiceId:', voiceId);
       // Generate speech from script
       const audioResponse = await client.textToSpeech.convert(voiceId, {
         text: project.script,
@@ -138,6 +138,25 @@ export const generateSpeech = action({
       return await ctx.storage.getUrl(audioFileId);
     } catch (error) {
       console.error('Error generating speech:', error);
+      throw error;
+    }
+  },
+});
+
+// Action to get available voices
+export const getVoices = action({
+  handler: async (ctx) => {
+    try {
+      const voices = await client.voices.getAll();
+      return voices.voices.map((voice) => ({
+        id: voice.voice_id,
+        name: voice.name,
+        previewUrl: voice.preview_url,
+        description: voice.description || '',
+        category: voice.category || 'other',
+      }));
+    } catch (error) {
+      console.error('Error getting voices:', error);
       throw error;
     }
   },

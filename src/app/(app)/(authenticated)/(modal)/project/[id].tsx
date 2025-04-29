@@ -28,6 +28,7 @@ import {
 } from '@/components/CaptionsOverlay';
 import { VideoControls } from '@/components/VideoControls';
 import { CaptionControls } from '@/components/CaptionControls';
+import { VoiceSelectionModal } from '@/components/VoiceSelectionModal';
 import { formatTime } from '@/utils/formatDuration';
 import { useAudioPlayer } from 'expo-audio';
 
@@ -38,9 +39,11 @@ const Page = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [showCaptionControls, setShowCaptionControls] = useState(false);
   const [showScriptModal, setShowScriptModal] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [script, setScript] = useState('');
   const [isSavingScript, setIsSavingScript] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string>('');
   const [captionSettings, setCaptionSettings] = useState<CaptionSettings>(DEFAULT_CAPTION_SETTINGS);
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
@@ -238,11 +241,14 @@ const Page = () => {
     }
   };
 
-  const onGenerateSpeech = async () => {
+  const onGenerateSpeech = async (voiceId?: string) => {
     try {
       setIsGeneratingAudio(true);
-      console.log('Generating speech');
-      const audioUrl = await generateSpeech({ projectId: id as Id<'projects'> });
+      console.log('Generating speech with voice:', voiceId || selectedVoiceId);
+      const audioUrl = await generateSpeech({
+        projectId: id as Id<'projects'>,
+        voiceId: voiceId || selectedVoiceId || undefined,
+      });
       if (audioUrl) {
         console.log('🚀 ~ onGenerateSpeech ~ audioUrl:', audioUrl);
         // Reset video and audio to beginning and start playback
@@ -382,11 +388,14 @@ const Page = () => {
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={onGenerateSpeech}
+                  onPress={() => {
+                    setShowScriptModal(false); // Close script modal first
+                    setTimeout(() => setShowVoiceModal(true), 100); // Open voice modal after a short delay
+                  }}
                   disabled={isGeneratingAudio || !script}
                   className={`flex-1 bg-[#2A2A2A] p-4 rounded-xl ${isGeneratingAudio || !script ? 'opacity-50' : ''}`}>
                   <Text className="text-white text-center font-Poppins_600SemiBold">
-                    {isGeneratingAudio ? 'Generating...' : 'Generate Speech'}
+                    {isGeneratingAudio ? 'Generating...' : 'Select Voice'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -400,6 +409,28 @@ const Page = () => {
         <View className="absolute inset-0 bg-black/50 items-center justify-center z-50">
           <ActivityIndicator size="large" color="#fff" />
           <Text className="text-white mt-4 font-Poppins_600SemiBold">Exporting video...</Text>
+        </View>
+      )}
+
+      {isGeneratingAudio && (
+        <View className="absolute inset-0 bg-black/50 items-center justify-center z-50">
+          <ActivityIndicator size="large" color="#fff" />
+          <Text className="text-white mt-4 font-Poppins_600SemiBold">Generating audio...</Text>
+        </View>
+      )}
+
+      {/* Voice Selection Modal - Rendered last to be on top */}
+      {showVoiceModal && (
+        <View className="absolute inset-0 z-[100]">
+          <VoiceSelectionModal
+            visible={showVoiceModal}
+            onClose={() => setShowVoiceModal(false)}
+            onSelectVoice={(voiceId) => {
+              setSelectedVoiceId(voiceId);
+              setShowVoiceModal(false);
+              onGenerateSpeech(voiceId);
+            }}
+          />
         </View>
       )}
     </View>
