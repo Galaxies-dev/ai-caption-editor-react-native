@@ -47,8 +47,6 @@
     "expo-system-ui": "~4.0.9",
     "expo-video": "~2.0.6",
     "expo-web-browser": "~14.0.2",
-    "ffmpeg-static": "^5.2.0",
-    "fs": "^0.0.1-security",
     "jotai": "^2.12.2",
     "nativewind": "^4.1.23",
     "react": "18.3.1",

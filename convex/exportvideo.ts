@@ -6,7 +6,7 @@ import { action } from './_generated/server';
 import { ConvexError, v } from 'convex/values';
 
 const MICROSERVICE_URL = process.env.MICROSERVICE_URL as string;
-console.log('🚀 ~ MICROSERVICE_URL:', MICROSERVICE_URL);
+
 // Generate a video with burned-in captions
 export const generateCaptionedVideo = action({
   args: { id: v.id('projects') },

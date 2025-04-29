@@ -113,10 +113,8 @@ router.post('/', async (req: Request<{}, {}, TranscodeRequest>, res: Response) =
       await fs.promises.writeFile(srtPath, generateSrtContent(captions));
 
       const fontColor = convertHexToFFmpegColor(captionSettings.color);
-      console.log('🚀 ~ router.post ~ fontColor:', fontColor);
       const position = getVerticalPosition(captionSettings.position);
-      console.log('🚀 ~ router.post ~ position:', position);
-      console.log('🚀 ~ router.post ~ captionSettings:', captionSettings);
+
       // Add subtitle filter with styling
 
       const alignment =

@@ -37,7 +37,7 @@ export const create = mutation({
       lastUpdate: Date.now(),
       videoSize: file.size,
       videoFileId: args.storageId,
-      status: 'processing',
+      status: 'pending',
     });
     return projectId;
   },
