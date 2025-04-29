@@ -6,68 +6,25 @@ import {
   ScrollView,
   Alert,
   Linking,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQuery, useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useState, useEffect } from 'react';
-import { Button } from 'react-native';
 import { Id } from '@/convex/_generated/dataModel';
-import { useVideoPlayer, VideoView, VideoPlayerStatus } from 'expo-video';
-import { useEvent, useEventListener } from 'expo';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { useEvent } from 'expo';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
-
-type CaptionPosition = 'top' | 'middle' | 'bottom';
-
-type CaptionSettings = {
-  fontSize: number;
-  position: CaptionPosition;
-  color: string;
-};
-
-// CaptionsOverlay component
-const CaptionsOverlay = ({
-  captions,
-  currentTime,
-  fontSize,
-  position,
-  color,
-}: {
-  captions: any[];
-  currentTime: number;
-  fontSize: number;
-  position: 'top' | 'middle' | 'bottom';
-  color: string;
-}) => {
-  const currentCaption = captions.find(
-    (caption) => currentTime >= caption.start && currentTime <= caption.end
-  );
-
-  if (!currentCaption) return null;
-
-  const positionClasses = {
-    top: 'top-[50px]',
-    middle: 'top-[250px] -translate-y-1/2',
-    bottom: 'bottom-[200px]',
-  };
-
-  return (
-    <View
-      className={`absolute left-0 right-0 items-center justify-center px-2.5 ${positionClasses[position]}`}>
-      <Text className="text-center bg-black/50 p-2 rounded" style={{ fontSize, color }}>
-        {currentCaption.text}
-      </Text>
-    </View>
-  );
-};
-
-const DEFAULT_CAPTION_SETTINGS: CaptionSettings = {
-  fontSize: 24,
-  position: 'bottom',
-  color: '#ffffff',
-};
+import {
+  CaptionsOverlay,
+  CaptionSettings,
+  DEFAULT_CAPTION_SETTINGS,
+} from '@/components/CaptionsOverlay';
+import { formatTime } from '@/utils/formatDuration';
 
 const Page = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -75,6 +32,10 @@ const Page = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [showCaptionControls, setShowCaptionControls] = useState(false);
+  const [showScriptModal, setShowScriptModal] = useState(false);
+  const [script, setScript] = useState('');
+  const [isSavingScript, setIsSavingScript] = useState(false);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [captionSettings, setCaptionSettings] = useState<CaptionSettings>(DEFAULT_CAPTION_SETTINGS);
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
@@ -82,7 +43,9 @@ const Page = () => {
   const updateProject = useMutation(api.projects.update);
   const updateCaptions = useMutation(api.projects.updateCaptions);
   const updateCaptionSettings = useMutation(api.projects.updateCaptionSettings);
+  const updateProjectScript = useMutation(api.projects.updateScript);
   const processVideo = useAction(api.elevenlabs.processVideo);
+  const generateSpeech = useAction(api.elevenlabs.generateSpeech);
   const exportVideo = useAction(api.exportvideo.generateCaptionedVideo);
 
   // Get the file URL from Convex storage
@@ -94,11 +57,10 @@ const Page = () => {
   const player = useVideoPlayer(fileUrl || null, (player) => {
     player.loop = true;
     player.timeUpdateEventInterval = 1;
-    player.play();
+    // player.play();
   });
 
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
-  const { status } = useEvent(player, 'statusChange', { status: player.status });
 
   // Update currentTime state when player's currentTime changes
   useEffect(() => {
@@ -116,6 +78,13 @@ const Page = () => {
       setCaptionSettings(project.captionSettings);
     }
   }, [project?.captionSettings]);
+
+  // Load script from project when it changes
+  useEffect(() => {
+    if (project?.script) {
+      setScript(project.script);
+    }
+  }, [project?.script]);
 
   // Update caption settings in Convex
   const handleCaptionSettingsChange = async (newSettings: typeof captionSettings) => {
@@ -144,12 +113,6 @@ const Page = () => {
     } finally {
       setIsUpdatingSettings(false);
     }
-  };
-
-  const formatTime = (timeInSeconds: number) => {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = Math.floor(timeInSeconds % 60);
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const handleGenerateCaptions = async () => {
@@ -257,6 +220,24 @@ const Page = () => {
     }
   };
 
+  const onGenerateSpeech = async () => {
+    try {
+      setIsGeneratingAudio(true);
+      const audioUrl = await generateSpeech({ projectId: id as Id<'projects'> });
+      if (audioUrl) {
+        console.log('🚀 ~ onGenerateSpeech ~ audioUrl:', audioUrl);
+        // Play the generated audio using Expo's Audio API
+        // const { sound } = await Audio.Sound.createAsync({ uri: audioUrl });
+        // await sound.playAsync();
+      }
+    } catch (error) {
+      console.error('Failed to generate speech:', error);
+      Alert.alert('Error', 'Failed to generate speech. Please try again.');
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  };
+
   if (!project) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -342,6 +323,11 @@ const Page = () => {
               className={`text-sm mt-1 ${isGenerating || project.status === 'processing' ? 'text-gray-400' : 'text-white'}`}>
               Captions
             </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => setShowScriptModal(true)} className="items-center mr-8">
+            <MaterialIcons name="description" size={28} color="white" />
+            <Text className="text-white text-sm mt-1">Script</Text>
           </TouchableOpacity>
 
           <TouchableOpacity className="items-center mr-8">
@@ -441,6 +427,62 @@ const Page = () => {
           </View>
         )}
       </View>
+
+      {/* Script Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showScriptModal}
+        onRequestClose={() => setShowScriptModal(false)}>
+        <View className="flex-1 justify-end">
+          <View className="bg-[#1A1A1A] rounded-t-3xl p-6 h-3/4">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-white text-xl font-Poppins_600SemiBold">Add Script</Text>
+              <TouchableOpacity onPress={() => setShowScriptModal(false)}>
+                <Ionicons name="close" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              className="bg-[#2A2A2A] text-white p-4 rounded-xl h-[60%] mb-4"
+              multiline
+              placeholder="Paste or write your script here..."
+              placeholderTextColor="#666"
+              value={script}
+              onChangeText={setScript}
+              textAlignVertical="top"
+            />
+            <View className="flex-row gap-2">
+              <TouchableOpacity
+                onPress={async () => {
+                  try {
+                    setIsSavingScript(true);
+                    await updateProjectScript({ id: id as Id<'projects'>, script });
+                    setShowScriptModal(false);
+                  } catch (error) {
+                    console.error('Failed to save script:', error);
+                    Alert.alert('Error', 'Failed to save script. Please try again.');
+                  } finally {
+                    setIsSavingScript(false);
+                  }
+                }}
+                disabled={isSavingScript}
+                className={`flex-1 bg-primary p-4 rounded-xl ${isSavingScript ? 'opacity-50' : ''}`}>
+                <Text className="text-white text-center font-Poppins_600SemiBold">
+                  {isSavingScript ? 'Saving...' : 'Save Script'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={onGenerateSpeech}
+                disabled={isGeneratingAudio || !script}
+                className={`flex-1 bg-[#2A2A2A] p-4 rounded-xl ${isGeneratingAudio || !script ? 'opacity-50' : ''}`}>
+                <Text className="text-white text-center font-Poppins_600SemiBold">
+                  {isGeneratingAudio ? 'Generating...' : 'Generate Speech'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Loading Overlay */}
       {isExporting && (

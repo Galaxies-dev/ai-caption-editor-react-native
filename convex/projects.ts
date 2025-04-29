@@ -1,14 +1,6 @@
 import { v } from 'convex/values';
-import { mutation, query, action, internalMutation, internalQuery } from './_generated/server';
+import { mutation, query, internalMutation, internalQuery } from './_generated/server';
 import { ConvexError } from 'convex/values';
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-import * as os from 'node:os';
-import { spawn } from 'child_process';
-import { internal } from './_generated/api';
-import { Id } from './_generated/dataModel';
-
-// import { Blob } from 'node:buffer';
 
 // Generate a URL to upload a video file
 export const generateUploadUrl = mutation({
@@ -192,11 +184,35 @@ export const updateProjectById = internalMutation({
   args: {
     id: v.id('projects'),
     generatedVideoFileId: v.optional(v.id('_storage')),
+    audioFileId: v.optional(v.id('_storage')),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, {
       generatedVideoFileId: args.generatedVideoFileId,
+      audioFileId: args.audioFileId,
       lastUpdate: Date.now(),
     });
+  },
+});
+
+// Update project script
+export const updateScript = mutation({
+  args: {
+    id: v.id('projects'),
+    script: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db.get(args.id);
+
+    if (!existing) {
+      throw new ConvexError('Project not found');
+    }
+
+    await ctx.db.patch(args.id, {
+      script: args.script,
+      lastUpdate: Date.now(),
+    });
+
+    return args.script;
   },
 });

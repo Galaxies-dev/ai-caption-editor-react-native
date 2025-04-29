@@ -55,6 +55,10 @@ const Page = () => {
     console.log('Record video');
   };
 
+  const onEditVideo = () => {
+    router.push('/filelist');
+  };
+
   return (
     <View className="flex-1 bg-dark px-4 pt-4">
       <View className="flex-1 p-4 rounded-2xl">
@@ -81,6 +85,7 @@ const Page = () => {
           }
           title="AI Creators"
           subtitle="Create talking videos and AI Twins"
+          onPress={onEditVideo}
         />
 
         <CreateOption

@@ -45,6 +45,8 @@ export default defineSchema({
     captions: v.optional(v.array(captionSegmentValidator)),
     captionSettings: v.optional(captionSettingsValidator),
     generatedVideoFileId: v.optional(v.id('_storage')), // Reference to video with burned-in captions
+    audioFileId: v.optional(v.id('_storage')), // Reference to generated audio file
+    script: v.optional(v.string()), // Script for text-to-speech
     status: v.union(
       v.literal('pending'),
       v.literal('processing'),

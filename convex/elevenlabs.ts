@@ -3,7 +3,6 @@
 import { v } from 'convex/values';
 import { action } from './_generated/server';
 import { ElevenLabsClient } from 'elevenlabs';
-import * as fs from 'fs';
 import { internal } from './_generated/api';
 
 const client = new ElevenLabsClient({
@@ -28,9 +27,6 @@ export const processVideo = action({
       const tempFilePath = `/tmp/${args.videoId}.mp4`;
       const response = await fetch(file);
       const videoBlob = new Blob([await response.arrayBuffer()], { type: 'video/mp4' });
-
-      // const buffer = Buffer.from(await response.arrayBuffer());
-      // await fs.promises.writeFile(tempFilePath, buffer);
 
       // Call ElevenLabs Speech to Text API
       console.log('Processing video with ElevenLabs');
@@ -68,20 +64,54 @@ export const processVideo = action({
   },
 });
 
-// const project = await ctx.db.get(args.id);
-// if (!project) {
-//   throw new ConvexError('Project not found');
-// }
+// Action to generate speech from script
+export const generateSpeech = action({
+  args: {
+    projectId: v.id('projects'),
+    voiceId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    try {
+      // Get the project
+      const project = await ctx.runQuery(internal.projects.getProjectById, {
+        id: args.projectId,
+      });
 
-// // Get the video file from storage
-// const videoFile = await ctx.storage.getUrl(project.videoFileId);
-// if (!videoFile) {
-//   throw new ConvexError('Video file not found');
-// }
+      if (!project || !project.script) {
+        throw new Error('Project not found or no script available');
+      }
 
-// try {
-//   // Call ElevenLabs Speech to Text API
-//   const result = await client.speechToText.convert({
-//     file: fs.createReadStream(videoFile),
-//     model_id: 'scribe_v1',
-//   });
+      // Use default voice if none specified
+      const voiceId = args.voiceId || 'EXAVITQu4vr4xnSDxMaL'; // Default voice ID
+
+      // Generate speech from script
+      const audioResponse = await client.textToSpeech.convert(voiceId, {
+        text: project.script,
+        model_id: 'eleven_monolingual_v1',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+        },
+      });
+
+      // Convert audio response to blob
+      const audioBuffer = Buffer.from(await audioResponse);
+      const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+
+      // Store audio file in Convex storage
+      const audioFileId = await ctx.storage.store(audioBlob);
+
+      // Update project with audio file ID
+      await ctx.runMutation(internal.projects.updateProjectById, {
+        id: args.projectId,
+        audioFileId,
+      });
+
+      // Return the URL to the audio file
+      return await ctx.storage.getUrl(audioFileId);
+    } catch (error) {
+      console.error('Error generating speech:', error);
+      throw error;
+    }
+  },
+});
