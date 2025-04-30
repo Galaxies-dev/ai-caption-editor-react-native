@@ -56,10 +56,6 @@ const Layout = () => {
             </Pressable>
           ),
           headerTransparent: true,
-          // headerStyle: {
-          //   backgroundColor: (twFullConfig.theme.colors as any).dark,
-          // },
-          // headerTitle: '',
           headerTitleStyle: {
             color: 'white',
           },

@@ -1,5 +1,6 @@
 import { Redirect, Slot, useSegments } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
+
 const Layout = () => {
   const segments = useSegments();
   const inAuthGroup = segments[1] === '(authenticated)';

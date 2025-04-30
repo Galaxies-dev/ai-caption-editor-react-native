@@ -120,8 +120,3 @@ export default function TabLayout() {
     </Tabs>
   );
 }
-// const styles = StyleSheet.create({
-//   tabBarButton: {
-//     backgroundColor: '#2e2e2e',
-//   },
-// });

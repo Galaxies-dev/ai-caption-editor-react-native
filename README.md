@@ -140,7 +140,7 @@ You need to set up a webhook in Clerk to handle the user creation and update eve
 <img src="./screenshots/demo3.gif" width="200" style="margin: 10px;">
 <img src="./screenshots/demo4.gif" width="200" style="margin: 10px;">
 <img src="./screenshots/demo5.gif" width="200" style="margin: 10px;">
-
+<img src="./screenshots/demo6.gif" width="200" style="margin: 10px;">
 </div>
 
 ## Sentry Screenshots

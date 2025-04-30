@@ -93,9 +93,8 @@ export const VoiceSelectionModal = ({
 
   const loadVoices = async () => {
     try {
-      console.log('Loading voices...');
       const voiceList = await getVoices();
-      console.log('Received voices:', voiceList);
+
       // Filter out any voices with missing required fields
       const validVoices = voiceList.filter(
         (voice): voice is Voice =>
@@ -104,7 +103,6 @@ export const VoiceSelectionModal = ({
           typeof voice.previewUrl === 'string' &&
           typeof voice.description === 'string'
       );
-      console.log('Valid voices:', validVoices);
       setVoices(validVoices);
     } catch (error) {
       console.error('Failed to load voices:', error);

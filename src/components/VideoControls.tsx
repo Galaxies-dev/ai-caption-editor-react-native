@@ -1,6 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
-import { Id } from '@/convex/_generated/dataModel';
 
 interface VideoControlsProps {
   isGenerating: boolean;

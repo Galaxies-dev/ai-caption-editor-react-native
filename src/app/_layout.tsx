@@ -9,7 +9,7 @@ import {
 } from '@expo-google-fonts/poppins';
 import { LogBox, useColorScheme } from 'react-native';
 import { tokenCache } from '@/utils/cache';
-import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
+import { ClerkProvider, ClerkLoaded, useAuth, useUser } from '@clerk/clerk-expo';
 import { ConvexReactClient } from 'convex/react';
 import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import { useEffect } from 'react';
@@ -45,6 +45,8 @@ const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
 });
 
 const InitialLayout = () => {
+  const user = useUser();
+
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -58,14 +60,14 @@ const InitialLayout = () => {
     }
   }, [fontsLoaded]);
 
-  // Sentry
-  // useEffect(() => {
-  //   if (user && user.user) {
-  //     Sentry.setUser({ email: user.user.emailAddresses[0].emailAddress, id: user.user.id });
-  //   } else {
-  //     Sentry.setUser(null);
-  //   }
-  // }, [user]);
+  Sentry;
+  useEffect(() => {
+    if (user && user.user) {
+      Sentry.setUser({ email: user.user.emailAddresses[0].emailAddress, id: user.user.id });
+    } else {
+      Sentry.setUser(null);
+    }
+  }, [user]);
 
   if (!fontsLoaded) {
     return null;

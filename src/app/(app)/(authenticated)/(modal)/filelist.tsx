@@ -1,21 +1,11 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Image,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, Pressable, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as MediaLibrary from 'expo-media-library';
-import { Link, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { formatDuration } from '@/utils/formatDuration';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import * as FileSystem from 'expo-file-system';
-
+import { Id } from '@/convex/_generated/dataModel';
 export default function FileList() {
   const [videos, setVideos] = useState<MediaLibrary.Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,13 +40,11 @@ export default function FileList() {
 
       // Get the upload URL from Convex
       const uploadUrl = await generateUploadUrl();
-      console.log('🚀 ~ selectVideo ~ uploadUrl:', uploadUrl);
 
       // Get the video file
       const fileInfo = await MediaLibrary.getAssetInfoAsync(video.id);
 
       const videoUri = fileInfo.localUri;
-      console.log('🚀 ~ selectVideo ~ videoUri:', videoUri);
 
       if (!videoUri) {
         throw new Error('Video URI not found');
@@ -66,16 +54,11 @@ export default function FileList() {
       const videoResponse = await fetch(videoUri);
       const blob = await videoResponse.blob();
 
-      console.log('Make fetch: ', blob);
-
       // Upload the video file
       const response = await fetch(uploadUrl, {
         method: 'POST',
         headers: { 'Content-Type': blob!.type },
         body: blob,
-        // body: await FileSystem.readAsStringAsync(videoUri, {
-        //   encoding: FileSystem.EncodingType.Base64,
-        // }),
       });
 
       if (!response.ok) {
@@ -84,10 +67,6 @@ export default function FileList() {
 
       const { storageId } = await response.json();
 
-      console.log('🚀 ~ selectVideo ~ response:', response);
-      // Get the storage ID from the response headers and parse it as a Convex ID
-      // const storageId = response.headers.get('storageId');
-      console.log('🚀 ~ selectVideo ~ storageId:', storageId);
       if (!storageId) {
         throw new Error('No storage ID returned from upload');
       }
@@ -95,9 +74,9 @@ export default function FileList() {
       // Create the project with the uploaded video
       const projectId = await createProject({
         name: video.filename || 'Untitled Video',
-        storageId: storageId as any, // Type assertion needed as Convex handles the ID type internally
+        videoSize: blob.size,
+        videoFileId: storageId as Id<'_storage'>,
       });
-      console.log('🚀 ~ selectVideo ~ projectId:', projectId);
 
       // Navigate to the project page
       router.push(`/project/${projectId}`);

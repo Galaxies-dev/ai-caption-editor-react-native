@@ -1,8 +1,8 @@
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { View, Text, Button, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-// First saw this example on Beto's app https://github.com/betomoedano/modern-chat-app
 
+// First saw this example on Beto's app https://github.com/betomoedano/modern-chat-app
 const Page = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
@@ -24,6 +24,10 @@ const Page = () => {
   const handleSignOut = async () => {
     await signOut();
     router.replace('/');
+  };
+
+  const causeError = () => {
+    throw new Error('Test error');
   };
 
   return (
@@ -57,6 +61,7 @@ const Page = () => {
           </View>
         ))}
       </View>
+      <Button title="Cause Error" onPress={causeError} />
     </View>
   );
 };

@@ -3,7 +3,6 @@ import {
   Text,
   ActivityIndicator,
   TouchableOpacity,
-  ScrollView,
   Alert,
   Linking,
   Modal,
@@ -18,7 +17,7 @@ import { useState, useEffect } from 'react';
 import { Id } from '@/convex/_generated/dataModel';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
-import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import {
@@ -47,7 +46,7 @@ const Page = () => {
   const [captionSettings, setCaptionSettings] = useState<CaptionSettings>(DEFAULT_CAPTION_SETTINGS);
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
-  const project = useQuery(api.projects.get, { id: id as Id<'projects'> });
+  const project = useQuery(api.projects.get, { projectId: id as Id<'projects'> });
   const updateProject = useMutation(api.projects.update);
   const updateCaptions = useMutation(api.projects.updateCaptions);
   const updateCaptionSettings = useMutation(api.projects.updateCaptionSettings);
@@ -181,7 +180,6 @@ const Page = () => {
 
     try {
       setIsExporting(true);
-      console.log('Exporting video');
 
       // Request media library permissions
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -190,18 +188,15 @@ const Page = () => {
       }
 
       const result = await exportVideo({ id: project._id });
-      console.log('🚀 ~ onExportVideo ~ result:', result);
 
       if (result) {
         // Download the video to local filesystem first
         const fileUri = FileSystem.documentDirectory + `exported_video_${new Date().getTime()}.mp4`;
         const downloadResult = await FileSystem.downloadAsync(result, fileUri);
-        console.log('🚀 ~ onExportVideo ~ fileUri:', fileUri);
 
         if (downloadResult.status === 200) {
           // Save the video to media library
           const asset = await MediaLibrary.createAssetAsync(downloadResult.uri);
-          console.log('Video saved to media library:', asset);
 
           // Clean up the temporary file
           await FileSystem.deleteAsync(fileUri);
@@ -216,8 +211,6 @@ const Page = () => {
                   if (!album) {
                     await MediaLibrary.createAlbumAsync('Captions App', asset, false);
                   } else {
-                    console.log('🚀 ~ onPress: ~ album:', album);
-                    console.log('🚀 ~ onPress: ~ asset:', asset);
                     await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
                   }
                   // Open the Photos app
@@ -244,13 +237,12 @@ const Page = () => {
   const onGenerateSpeech = async (voiceId?: string) => {
     try {
       setIsGeneratingAudio(true);
-      console.log('Generating speech with voice:', voiceId || selectedVoiceId);
+
       const audioUrl = await generateSpeech({
         projectId: id as Id<'projects'>,
         voiceId: voiceId || selectedVoiceId || undefined,
       });
       if (audioUrl) {
-        console.log('🚀 ~ onGenerateSpeech ~ audioUrl:', audioUrl);
         // Reset video and audio to beginning and start playback
         if (player) {
           player.currentTime = 0;
@@ -416,6 +408,13 @@ const Page = () => {
         <View className="absolute inset-0 bg-black/50 items-center justify-center z-50">
           <ActivityIndicator size="large" color="#fff" />
           <Text className="text-white mt-4 font-Poppins_600SemiBold">Generating audio...</Text>
+        </View>
+      )}
+
+      {isGenerating && (
+        <View className="absolute inset-0 bg-black/50 items-center justify-center z-50">
+          <ActivityIndicator size="large" color="#fff" />
+          <Text className="text-white mt-4 font-Poppins_600SemiBold">Generating captions...</Text>
         </View>
       )}
 

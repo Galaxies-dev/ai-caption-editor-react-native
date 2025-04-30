@@ -75,5 +75,3 @@ export default function FAQ({ dom }: FAQProps) {
     </div>
   );
 }
-
-// Basic inline styles for demonstration - REMOVED
