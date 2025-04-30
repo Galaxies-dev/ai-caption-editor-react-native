@@ -1,15 +1,14 @@
 # React Native Captions Clone with Convex, ElevenLabs, Sentry and Expo
 
-This is a React Native Captions clone using [Convex](https://www.convex.dev/) for real-time data synchronization, [ElevenLabs](https://elevenlabs.io/) for text-to-speech, [Clerk](https://go.clerk.com/1vaJMZL) for user authentication and [Sentry](https://sentry.io/welcome?utm_source=simongrimm&utm_medium=paid-community&utm_campaign=mobile-fy25q3-builders&utm_content=partner-react-native-mobile-learnmore&code=simongrimm) for error tracking.
+This is a React Native Captions clone using [Convex](https://convex.link/simongrimm) for real-time data synchronization, [ElevenLabs](https://try.elevenlabs.io/j7ztnqelnoqj) for text-to-speech, [Clerk](https://go.clerk.com/GiiEcN5) for user authentication and [Sentry](https://dub.sh/sentry-galaxies) for error tracking.
 
 Additional features:
 
 - [Expo Router](https://docs.expo.dev/routing/introduction/) file-based navigation
-- [Convex Database](https://docs.convex.dev/database) for data storage
-- [Convex File Storage](https://docs.convex.dev/file-storage) for file storage
-- [Convex Actions](https://supabase.com/edge-functions) for push notifications
-- - [Sentry](https://docs.sentry.io/platforms/react-native/?utm_source=simongrimm&utm_medium=paid-community&utm_campaign=mobile-fy25q3-builders&utm_content=partner-react-native-mobile-trysentry&code=simongrimm) for error tracking
-- [Clerk Passkeys](https://docs.clerk.com/passkeys/overview) for passwordless authentication
+- [Convex Database](https://docs.convex.dev/database?utm_source=simon_grimm&utm_medium=video&dub_id=eV96rPl11O0EC58S) for data storage
+- [Convex File Storage](https://docs.convex.dev/file-storage?utm_source=simon_grimm&utm_medium=video&dub_id=eV96rPl11O0EC58S) for file storage
+- [Sentry](https://dub.sh/sentry-galaxies) for error tracking
+- [Clerk Passkeys](https://docs.clerk.com/passkeys/overview?utm_source=simong&utm_medium=youtube&utm_campaign=captions-clone&dub_id=5zB4z5fxgHWQzbgE) for passwordless authentication
 - [Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/) for haptic feedback
 - [Jotai](https://jotai.pmnd.rs/) for state management
 - [NativeWind](https://www.nativewind.dev/) for styling
@@ -53,8 +52,20 @@ To build the app, follow these steps:
 
 ### Convex Setup
 
-1. Create an account on [Convex](https://www.convex.dev/)
+1. Create an account on [Convex](https://convex.link/simongrimm)
 2. Run `bunx convex dev` to start the development server
+
+### Microservice Setup
+
+To export the video with burned in captions we need an environment with `ffmpeg` installed (you can do this locally).
+
+1. Go into the `/microservice` folder
+2. Run `npm install` to install the dependencies
+3. Run `npm run dev` to start the microservice
+
+You then have to add the URL to the Convex environment variable `MICROSERVICE_URL`. I recommend using something like [ngrok](https://ngrok.com/) to test the microservice locally.
+
+`npx convex env set MICROSERVICE_URL <your-microservice-url>/transcode`
 
 ## Clerk Setup
 
@@ -75,31 +86,85 @@ export default {
 };
 ```
 
-You also need to connect Convex and Clerk with a JWT template. For this, cehck out the video and [Convex docs](https://docs.convex.dev/auth/clerk).
+You also need to connect Convex and Clerk with a JWT template. For this, cehck out the video and [Convex docs](https://docs.convex.dev/auth/clerk?utm_source=simon_grimm&utm_medium=video&dub_id=eV96rPl11O0EC58S).
+
+### Webhook Setup
+
+You need to set up a webhook in Clerk to handle the user creation and update events.
+
+1. Go to [Clerk](https://clerk.com/?utm_source=simong&utm_medium=youtube&utm_campaign=captions-clone&dub_id=5zB4z5fxgHWQzbgE) and select your project
+2. Go to **API** and select **Webhooks**
+3. Add the following webhook, which should point to your Convex instance and include the `user.created` and `user.deleted` events:
+
+<img src="./screenshots/webhook.png" width=100%>
 
 ### ElevenLabs Setup
 
-1. Create an account on [ElevenLabs](https://elevenlabs.io/)
-2. Get an API key from [ElevenLabs](https://elevenlabs.io/api-keys)
+1. Create an account on [ElevenLabs](https://try.elevenlabs.io/j7ztnqelnoqj)
+2. Get an API key from ElevenLabs
 3. Add the key to Convex by running `bunx convex env set ELEVENLABS_API_KEY=<your-api-key>`
 
 <img src="./screenshots/elevenlabs.png">
 
 ### Sentry Setup
 
-1. Create a new project on [Sentry](https://sentry.io/welcome?utm_source=simongrimm&utm_medium=paid-community&utm_campaign=mobile-fy25q3-builders&utm_content=partner-react-native-mobile-learnmore&code=simongrimm)
-2. Use the `bunx @sentry/wizard@latest -i reactNative --saas` command to setup Sentry for your project
+1. Create a new project on [Sentry](https://dub.sh/sentry-galaxies)
+2. Use the `npx @sentry/wizard@latest -s -i reactNative` command to setup Sentry for your project
+
+<img src="./screenshots/dsn.png" width=100%>
+
 
 ## App Screenshots
 
 <div style="display: flex; flex-direction: 'row';">
-[Your app screenshots will go here]
+<img src="./screenshots/app01.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app02.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app03.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app04.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app05.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app06.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app07.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app08.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app09.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app10.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app11.png" width="200" style="margin: 10px;">
+<img src="./screenshots/app12.png" width="200" style="margin: 10px;">
+
+</div>
+
+## Demo
+
+<div style="display: flex; flex-direction: 'row';">
+<img src="./screenshots/demo1.gif" width="200" style="margin: 10px;">
+<img src="./screenshots/demo2.gif" width="200" style="margin: 10px;">
+<img src="./screenshots/demo3.gif" width="200" style="margin: 10px;">
+<img src="./screenshots/demo4.gif" width="200" style="margin: 10px;">
+<img src="./screenshots/demo5.gif" width="200" style="margin: 10px;">
+
+</div>
+
+## Sentry Screenshots
+
+<div style="display: flex; flex-direction: 'row';">
+<img src="./screenshots/sentry1.png" width="100%" style="margin: 10px;">
+<img src="./screenshots/sentry2.png" width="100%" style="margin: 10px;">
+<img src="./screenshots/sentry3.gif" width="100%" style="margin: 10px;">
+
+</div>
+
+## Convex Screenshots
+
+<div style="display: flex; flex-direction: 'row';">
+<img src="./screenshots/convex1.png" width="100%" style="margin: 10px;">
+<img src="./screenshots/convex2.png" width="100%" style="margin: 10px;">
+<img src="./screenshots/convex3.png" width="100%" style="margin: 10px;">
+<img src="./screenshots/convex4.png" width="100%" style="margin: 10px;">
+
 </div>
 
 ## 🚀 More
 
 **Take a shortcut from web developer to mobile development fluency with guided learning**
-
 Enjoyed this project? Learn to use React Native to build production-ready, native mobile apps for both iOS and Android based on your existing web development skills.
 
-<a href="https://galaxies.dev"><img src="banner.png" height="auto" width="100%"></a>
+<a href="https://galaxies.dev?utm_source=simongrimm&utm_medium=github&vid=captions-clone"><img src="banner.png" height="auto" width="100%"></a>

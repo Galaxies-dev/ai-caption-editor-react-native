@@ -23,4 +23,4 @@ bunx convex dev
 
 bun install elevenlabs
 
-bunx @sentry/wizard@latest -i reactNative --saas
+bunx @sentry/wizard@latest -s -i reactNative

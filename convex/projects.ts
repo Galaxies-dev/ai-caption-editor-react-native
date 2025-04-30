@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, internalMutation, internalQuery } from './_generated/server';
 import { ConvexError } from 'convex/values';
+import { getUser, authorizeProject } from './auth';
 
 // Generate a URL to upload a video file
 export const generateUploadUrl = mutation({
@@ -14,44 +15,42 @@ export const generateUploadUrl = mutation({
 export const create = mutation({
   args: {
     name: v.string(),
-    storageId: v.id('_storage'),
+    videoSize: v.number(),
+    videoFileId: v.id('_storage'),
   },
   handler: async (ctx, args) => {
-    // Get the file size from storage
-    // `db.system.get(Id<"_storage">)` instead.
-    const file = await ctx.db.system.get(args.storageId);
-    if (!file) {
-      throw new ConvexError('File not found in storage');
-    }
+    const user = await getUser(ctx);
 
-    const projectId = await ctx.db.insert('projects', {
+    return await ctx.db.insert('projects', {
+      userId: user._id,
       name: args.name,
       lastUpdate: Date.now(),
-      videoSize: file.size,
-      videoFileId: args.storageId,
+      videoSize: args.videoSize,
+      videoFileId: args.videoFileId,
       status: 'pending',
     });
-    return projectId;
   },
 });
 
 // Get a single project by ID
 export const get = query({
-  args: { id: v.id('projects') },
+  args: { projectId: v.id('projects') },
   handler: async (ctx, args) => {
-    const project = await ctx.db.get(args.id);
-    if (!project) {
-      throw new ConvexError('Project not found');
-    }
+    const { project } = await authorizeProject(ctx, args.projectId);
     return project;
   },
 });
 
 // List all projects
-export const list = query({
-  handler: async (ctx) => {
-    return await ctx.db.query('projects').withIndex('by_lastUpdate').order('desc').collect();
-  },
+export const list = query(async (ctx) => {
+  const user = await getUser(ctx);
+
+  const projects = await ctx.db
+    .query('projects')
+    .withIndex('by_user', (q) => q.eq('userId', user._id))
+    .collect();
+
+  return projects;
 });
 
 // Update project details

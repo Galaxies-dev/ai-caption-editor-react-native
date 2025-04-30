@@ -64,7 +64,15 @@
         }
       ],
       "expo-video",
-      "expo-audio"
+      "expo-audio",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "captions",
+          "organization": "galaxies"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

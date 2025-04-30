@@ -37,6 +37,7 @@ export const User = {
 export default defineSchema({
   users: defineTable(User).index('byExternalId', ['externalId']),
   projects: defineTable({
+    userId: v.id('users'), // Reference to the user who owns this project
     name: v.string(),
     lastUpdate: v.number(), // Unix timestamp
     videoSize: v.number(), // in bytes
@@ -54,5 +55,7 @@ export default defineSchema({
       v.literal('failed')
     ),
     error: v.optional(v.string()),
-  }).index('by_lastUpdate', ['lastUpdate']),
+  })
+    .index('by_lastUpdate', ['lastUpdate'])
+    .index('by_user', ['userId']), // Index to efficiently query projects by user
 });

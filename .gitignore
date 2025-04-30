@@ -39,3 +39,4 @@ app-example
 .env
 ios/
 android/
+.env.local

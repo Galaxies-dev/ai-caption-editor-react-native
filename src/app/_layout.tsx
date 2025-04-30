@@ -19,7 +19,7 @@ import { passkeys } from '@clerk/clerk-expo/passkeys';
 import * as Sentry from '@sentry/react-native';
 
 Sentry.init({
-  dsn: 'https://aa92b133b648cc042e3a440ebdc42182@o106619.ingest.us.sentry.io/4509236507901952',
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
   // Configure Session Replay
   replaysSessionSampleRate: 1.0,
   replaysOnErrorSampleRate: 1.0,

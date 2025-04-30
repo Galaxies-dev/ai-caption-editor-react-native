@@ -21,6 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSetAtom } from 'jotai';
 import { emailAtom } from '@/store/login';
 import { twFullConfig } from '@/utils/twconfig';
+import * as Sentry from '@sentry/react-native';
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState<'google' | 'apple' | 'microsoft' | 'email' | false>(false);
@@ -106,6 +107,10 @@ export default function LoginScreen() {
       // for more info on error handling
       console.error('Error:', JSON.stringify(err, null, 2));
     }
+  };
+
+  const testSentry = () => {
+    Sentry.captureException(new Error('Test Sentry Error'));
   };
 
   const Logo = () => (
@@ -255,6 +260,12 @@ export default function LoginScreen() {
           <TouchableOpacity onPress={signInWithPasskey}>
             <Text className="text-gray-400 text-center font-Poppins_600SemiBold text-base">
               Continue with Passkey
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={testSentry}>
+            <Text className="text-gray-400 text-center font-Poppins_600SemiBold text-base">
+              Test Sentry
             </Text>
           </TouchableOpacity>
         </View>
