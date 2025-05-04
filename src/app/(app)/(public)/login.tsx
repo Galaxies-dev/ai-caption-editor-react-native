@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { useSignUp, useSSO, useSignIn } from '@clerk/clerk-expo';
+import { useSignUp, useSSO, useSignIn, isClerkAPIResponseError } from '@clerk/clerk-expo';
 import Checkbox from 'expo-checkbox';
 import { Link, useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
@@ -22,9 +22,10 @@ import { useSetAtom } from 'jotai';
 import { emailAtom } from '@/store/login';
 import { twFullConfig } from '@/utils/twconfig';
 import * as Sentry from '@sentry/react-native';
+import { clerk } from '@clerk/clerk-expo/dist/provider/singleton';
 
 export default function LoginScreen() {
-  const [loading, setLoading] = useState<'google' | 'apple' | 'microsoft' | 'email' | false>(false);
+  const [loading, setLoading] = useState<'google' | 'apple' | 'email' | false>(false);
   const [isTermsChecked, setTermsChecked] = useState(false);
   const [email, setEmail] = useState('saimon@devdactic.com');
   const setEmailAtom = useSetAtom(emailAtom);
@@ -33,15 +34,9 @@ export default function LoginScreen() {
   const { signUp } = useSignUp();
   const { signIn, setActive } = useSignIn();
   const router = useRouter();
-  const handleSignInWithSSO = async (
-    strategy: 'oauth_google' | 'oauth_apple' | 'oauth_microsoft'
-  ) => {
-    if (
-      strategy === 'oauth_google' ||
-      strategy === 'oauth_apple' ||
-      strategy === 'oauth_microsoft'
-    ) {
-      setLoading(strategy.replace('oauth_', '') as 'google' | 'apple' | 'microsoft');
+  const handleSignInWithSSO = async (strategy: 'oauth_google' | 'oauth_apple') => {
+    if (strategy === 'oauth_google' || strategy === 'oauth_apple') {
+      setLoading(strategy.replace('oauth_', '') as 'google' | 'apple');
     } else {
       setLoading(false);
     }
@@ -66,15 +61,34 @@ export default function LoginScreen() {
       return;
     }
     try {
-      const result = await signUp?.create({
+      await signUp?.create({
         emailAddress: email,
       });
       await signUp!.prepareEmailAddressVerification({ strategy: 'email_code' });
       setEmailAtom(email);
       router.push('/verify');
     } catch (error) {
-      console.error('Sign up error:', error);
-      Alert.alert('Error', 'Something went wrong');
+      if (isClerkAPIResponseError(error)) {
+        if (error.status === 422) {
+          handleSignInWithEmail();
+        } else {
+          Alert.alert('Error', 'Something went wrong');
+        }
+      }
+    }
+  };
+
+  const handleSignInWithEmail = async () => {
+    try {
+      const signInAttempt = await signIn?.create({
+        strategy: 'email_code',
+        identifier: email,
+      });
+      console.log('signInAttempt', JSON.stringify(signInAttempt, null, 2));
+      router.push('/verify?isLogin=true');
+      // await signIn?.prepareFirstFactor({ strategy: 'email_code' });
+    } catch (error) {
+      console.error('Error:', JSON.stringify(error, null, 2));
     }
   };
 
@@ -114,42 +128,19 @@ export default function LoginScreen() {
   };
 
   const Logo = () => (
-    <View className="items-center mb-24 pt-10">
+    <View className="items-center mb-8 pt-8">
       <View className="flex-row">
-        <Text className="text-white text-6xl font-bold">captions</Text>
-        <Text className="text-white text-xl font-bold">®</Text>
+        <Image source={require('@/assets/images/convex.png')} className="w-40 h-40" />
       </View>
       <Text className="text-gray-400 text-md mt-2 font-Poppins_400Regular">
-        Generate and edit talking videos with AI.
+        AI-powered Captions editor
       </Text>
     </View>
   );
 
   return (
-    <View className="flex-1 bg-black">
-      {/* Container for Colored Blobs */}
-      <View className="absolute top-0 left-0 right-0 h-[400px] overflow-hidden">
-        {/* Colored Blobs */}
-        <View className="absolute -top-20 -left-40 w-96 h-96 bg-sky-400 rounded-full opacity-80" />
-        <View className="absolute -top-40 -right-20 w-96 h-96 bg-blue-600 rounded-full opacity-50" />
-        <View className="absolute top-20 -right-20 w-72 h-72 bg-indigo-600 rounded-full opacity-40" />
-      </View>
-
-      {/* Blurred Overlay */}
-      <BlurView
-        intensity={100}
-        tint="dark"
-        className="absolute top-0 left-0 right-0 h-[400px]"></BlurView>
-
-      {/* Gradient Overlay for Smooth Transition */}
-      <LinearGradient
-        colors={['rgba(0,0,0,0)', 'black']} // Fade from transparent to the background black
-        className="absolute left-0 right-0 h-[400px]" // Height of the gradient fade
-        style={{ top: 0 }} // Position gradient at the bottom of the 400px blur area
-      />
-
-      {/* Main Content Area */}
-      <View className="flex-1 p-6 pt-safe z-10">
+    <View className="flex-1 bg-black pt-safe">
+      <View className="flex-1 p-6">
         <View className="flex-row justify-end">
           <Link href="/faq" asChild>
             <TouchableOpacity className="bg-gray-700 rounded-xl p-2">
@@ -234,22 +225,6 @@ export default function LoginScreen() {
                 <Image source={require('@/assets/images/google.webp')} className="w-6 h-6" />
                 <Text className="text-white text-center font-Poppins_600SemiBold ml-3 text-base">
                   Continue with Google
-                </Text>
-              </>
-            )}
-          </Pressable>
-
-          <Pressable
-            className="w-full flex-row justify-center items-center bg-gray-800 p-4 rounded-lg"
-            onPress={() => handleSignInWithSSO('oauth_microsoft')}
-            disabled={!!loading}>
-            {loading === 'microsoft' ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <>
-                <Image source={require('@/assets/images/microsoft.webp')} className="w-6 h-6" />
-                <Text className="text-white text-center font-Poppins_600SemiBold ml-3 text-base">
-                  Continue with Microsoft
                 </Text>
               </>
             )}

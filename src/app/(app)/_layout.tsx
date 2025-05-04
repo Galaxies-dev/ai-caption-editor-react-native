@@ -13,7 +13,7 @@ const Layout = () => {
   }
 
   if (isSignedIn && !inAuthGroup) {
-    return <Redirect href="/(app)/(authenticated)/(drawer)/(tabs)/projects" />;
+    return <Redirect href="/(app)/(authenticated)/(tabs)/projects" />;
   }
 
   return <Slot />;

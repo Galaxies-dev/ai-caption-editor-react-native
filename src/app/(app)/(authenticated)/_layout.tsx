@@ -4,11 +4,37 @@ import { Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { twFullConfig } from '@/utils/twconfig';
 
+// screenOptions={{
+//   drawerActiveTintColor: '#ffffff',
+//   drawerInactiveTintColor: '#ffffff',
+//   headerShown: false,
+//   drawerStyle: {
+//     backgroundColor: '#1a1a1a',
+//   },
+//   drawerLabelStyle: {
+//     fontSize: 16,
+//     fontFamily: 'Poppins_500Medium',
+//     paddingVertical: 2,
+//   },
+//   drawerActiveBackgroundColor: '#2a2a2a',
+//   drawerItemStyle: {
+//     borderRadius: 10,
+//   },
+//   headerStyle: {
+//     backgroundColor: '#1a1a1a',
+//   },
+//   headerTitleStyle: {
+//     fontFamily: 'Poppins_600SemiBold',
+//     fontSize: 22,
+//   },
+//   headerTintColor: '#ffffff',
+// }}
+
 const Layout = () => {
   const router = useRouter();
   return (
     <Stack>
-      <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="(modal)/create"
         options={{

@@ -1,4 +1,4 @@
-bunx create-expo captions-clone
+bunx create-expo ai-captions-editor
 
 bun install nativewind tailwindcss@^3.4.17
 

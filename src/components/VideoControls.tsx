@@ -26,8 +26,16 @@ export const VideoControls = ({
         <TouchableOpacity
           onPress={onGenerateCaptions}
           disabled={isGenerating || projectStatus === 'processing'}
-          className={`items-center mr-8 rounded-full p-4 ${isGenerating || projectStatus === 'processing' ? 'bg-gray-400' : 'bg-white'}`}>
-          <MaterialIcons name="auto-awesome" size={28} color="#1A1A1A" />
+          className="items-center mr-8">
+          <MaterialIcons
+            name="auto-awesome"
+            size={28}
+            color={isGenerating || projectStatus === 'processing' ? '#9CA3AF' : 'white'}
+          />
+          <Text
+            className={`text-sm mt-1 ${isGenerating || projectStatus === 'processing' ? 'text-gray-400' : 'text-white'}`}>
+            Generate
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity

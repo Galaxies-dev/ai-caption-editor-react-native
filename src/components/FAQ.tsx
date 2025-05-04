@@ -29,9 +29,6 @@ export default function FAQ({ dom }: FAQProps) {
       <div className="text-white p-4 pt-8">
         <div className="flex justify-end items-center mb-4">
           <div className="flex items-center space-x-1">
-            <span className="text-xl">👩‍💻</span>
-            <span className="text-xl">👨‍🎨</span>
-            <span className="text-xl">😉</span>
             <button className="ml-2 text-2xl font-light" onClick={() => router.dismiss()}>
               X
             </button>

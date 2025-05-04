@@ -7,7 +7,6 @@ import * as Haptics from 'expo-haptics';
 import { twFullConfig } from '@/utils/twconfig';
 import { LinearGradient } from 'expo-linear-gradient';
 import { cssInterop } from 'nativewind';
-import { DrawerToggleButton } from '@react-navigation/drawer';
 import { PlatformPressable } from '@react-navigation/elements';
 
 cssInterop(LinearGradient, {
@@ -32,7 +31,7 @@ const CreateButton = () => {
   return (
     <Pressable onPress={handleCreate} className="rounded-xl flex-1 items-center justify-center">
       <LinearGradient
-        colors={['#8B5CF6', '#6366F1']}
+        colors={['#F3B01C', '#F3B01C']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="rounded-xl items-center justify-center px-6 py-1">
@@ -69,7 +68,6 @@ export default function TabLayout() {
         tabBarInactiveTintColor: '#6c6c6c',
         headerTintColor: '#fff',
         tabBarButton: HapticTab,
-        headerTitleAlign: 'left',
       }}>
       <Tabs.Screen
         name="projects"
@@ -78,13 +76,6 @@ export default function TabLayout() {
           tabBarLabel: 'Projects',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="film-outline" size={size} color={color} />
-          ),
-          headerLeft: () => <DrawerToggleButton tintColor="#ffffff" />,
-          headerRight: () => (
-            <TouchableOpacity className="flex-row items-center gap-2 border border-primary rounded-xl px-2 py-1 mr-2">
-              <Ionicons name="gift-outline" size={18} className="text-primary" />
-              <Text className="text-white text-xs font-Poppins_600SemiBold">Get PRO</Text>
-            </TouchableOpacity>
           ),
           tabBarButton: (props) => (
             <PlatformPressable {...props} style={{ gap: 6, alignItems: 'center', marginTop: 10 }} />

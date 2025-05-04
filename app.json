@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "captions-clone",
-    "slug": "captions-clone",
+    "name": "ai-captions-editor",
+    "slug": "ai-captions-editor",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/images/icon.png",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.galaxies.captions-clone",
+      "bundleIdentifier": "com.galaxies.ai-captions-editor",
       "associatedDomains": [
         "applinks:pleased-haddock-38.clerk.accounts.dev",
         "webcredentials:pleased-haddock-38.clerk.accounts.dev"

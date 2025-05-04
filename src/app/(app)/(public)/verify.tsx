@@ -7,22 +7,25 @@ import {
   Platform,
   Keyboard,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useRef, useEffect } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { emailAtom } from '@/store/login';
 import { useAtomValue } from 'jotai';
-import { isClerkAPIResponseError, useSignUp } from '@clerk/clerk-expo';
+import { isClerkAPIResponseError, useSignUp, useSignIn } from '@clerk/clerk-expo';
 import { Alert } from 'react-native';
 
 const Verify = () => {
   const router = useRouter();
+  const { isLogin } = useLocalSearchParams<{ isLogin?: string }>();
+  console.log('🚀 ~ Verify ~ isLogin:', isLogin);
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [countdown, setCountdown] = useState(60);
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const inputRefs = useRef<Array<TextInput | null>>([null, null, null, null, null, null]);
   const email = useAtomValue(emailAtom);
   const { signUp, setActive } = useSignUp();
+  const { signIn } = useSignIn();
 
   useEffect(() => {
     // Focus first input on mount
@@ -68,17 +71,13 @@ const Verify = () => {
   }, [isCodeComplete]);
 
   const handleCreateAccount = async () => {
-    await verifyCode();
-  };
-
-  const verifyCode = async () => {
     try {
       const result = await signUp!.attemptEmailAddressVerification({
         code: code.join(''),
       });
       console.log('result', JSON.stringify(result, null, 2));
       await setActive!({ session: result.createdSessionId });
-      router.replace('/(app)/(authenticated)/(drawer)/(tabs)/projects');
+      router.replace('/(app)/(authenticated)/(tabs)/projects');
     } catch (err) {
       console.log('error', JSON.stringify(err, null, 2));
       if (isClerkAPIResponseError(err)) {
@@ -86,6 +85,25 @@ const Verify = () => {
       }
     }
   };
+
+  const handleSignIn = async () => {
+    // await verifyCode();
+    try {
+      const result = await signIn!.attemptFirstFactor({
+        strategy: 'email_code',
+        code: code.join(''),
+      });
+      console.log('result', JSON.stringify(result, null, 2));
+      await setActive!({ session: result.createdSessionId });
+      router.replace('/(app)/(authenticated)/(tabs)/projects');
+    } catch (err) {
+      console.log('error', JSON.stringify(err, null, 2));
+      if (isClerkAPIResponseError(err)) {
+        Alert.alert('Error', err.errors[0].message);
+      }
+    }
+  };
+  44;
 
   const handleResendCode = async () => {
     if (countdown === 0) {
@@ -112,15 +130,8 @@ const Verify = () => {
           <MaterialCommunityIcons name="chevron-left" size={32} color="white" />
         </TouchableOpacity>
 
-        {/* Email Icon */}
-        <View className="mt-8">
-          <View className="w-20 h-20 bg-[#5856D6] rounded-full items-center justify-center">
-            <MaterialCommunityIcons name="email" size={40} color="white" />
-          </View>
-        </View>
-
         {/* Title */}
-        <Text className="text-white text-xl font-Poppins_600SemiBold mt-8">Enter code</Text>
+        <Text className="text-white text-xl font-Poppins_600SemiBold mt-20">Enter code</Text>
 
         {/* Subtitle */}
         <Text className="text-gray-400 mt-2 font-Poppins_400Regular">
@@ -165,12 +176,12 @@ const Verify = () => {
         <TouchableOpacity
           className={`rounded-lg py-4 mt-auto mb-8 ${isCodeComplete ? 'bg-primary' : 'bg-gray-900'}`}
           disabled={!isCodeComplete}
-          onPress={handleCreateAccount}>
+          onPress={isLogin ? handleSignIn : handleCreateAccount}>
           <Text
             className={`text-center text-lg font-Poppins_600SemiBold ${
               !isCodeComplete ? 'text-gray-400' : 'text-white'
             }`}>
-            Create account
+            {isLogin ? 'Sign in' : 'Create account'}
           </Text>
         </TouchableOpacity>
       </View>

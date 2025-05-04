@@ -1,6 +1,6 @@
-# React Native Captions Clone with Convex, ElevenLabs, Sentry and Expo
+# React Native AI Captions Editor with Convex, ElevenLabs, Sentry and Expo
 
-This is a React Native Captions clone using [Convex](https://convex.link/simongrimm) for real-time data synchronization, [ElevenLabs](https://try.elevenlabs.io/j7ztnqelnoqj) for text-to-speech, [Clerk](https://go.clerk.com/GiiEcN5) for user authentication and [Sentry](https://dub.sh/sentry-galaxies) for error tracking.
+This is a React Native AI Captions Editor using [Convex](https://convex.link/simongrimm) for real-time data synchronization, [ElevenLabs](https://try.elevenlabs.io/j7ztnqelnoqj) for text-to-speech, [Clerk](https://go.clerk.com/GiiEcN5) for user authentication and [Sentry](https://dub.sh/sentry-galaxies) for error tracking.
 
 Additional features:
 
@@ -20,20 +20,16 @@ Additional features:
 
 ### 🎥 Follow the video tutorial
 
-Watch and build this Captions clone step by step:
+Watch and build this AI Captions Editor step by step:
 
 TODO: Add video
 <p align="center">
   <a href="https://youtu.be/A8gJFybTPr0?si=MbVOcnPJEfRWCOmi" target="_blank">
-    <!-- <img src="https://img.youtube.com/vi/A8gJFybTPr0/maxresdefault.jpg" alt="Build a React Native Captions Clone with Convex, ElevenLabs, Sentry and Expo" width="100%" /> -->
+    <!-- <img src="https://img.youtube.com/vi/A8gJFybTPr0/maxresdefault.jpg" alt="Build a React Native AI Captions Editor with Convex, ElevenLabs, Sentry and Expo" width="100%" /> -->
   </a>
 </p>
 
-
-
 ## Setup
-
-
 
 ### Environment Setup
 
@@ -167,4 +163,4 @@ You need to set up a webhook in Clerk to handle the user creation and update eve
 **Take a shortcut from web developer to mobile development fluency with guided learning**
 Enjoyed this project? Learn to use React Native to build production-ready, native mobile apps for both iOS and Android based on your existing web development skills.
 
-<a href="https://galaxies.dev?utm_source=simongrimm&utm_medium=github&vid=captions-clone"><img src="banner.png" height="auto" width="100%"></a>
+<a href="https://galaxies.dev?utm_source=simongrimm&utm_medium=github&vid=ai-captions-editor"><img src="banner.png" height="auto" width="100%"></a>
