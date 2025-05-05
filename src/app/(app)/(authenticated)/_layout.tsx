@@ -4,32 +4,6 @@ import { Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { twFullConfig } from '@/utils/twconfig';
 
-// screenOptions={{
-//   drawerActiveTintColor: '#ffffff',
-//   drawerInactiveTintColor: '#ffffff',
-//   headerShown: false,
-//   drawerStyle: {
-//     backgroundColor: '#1a1a1a',
-//   },
-//   drawerLabelStyle: {
-//     fontSize: 16,
-//     fontFamily: 'Poppins_500Medium',
-//     paddingVertical: 2,
-//   },
-//   drawerActiveBackgroundColor: '#2a2a2a',
-//   drawerItemStyle: {
-//     borderRadius: 10,
-//   },
-//   headerStyle: {
-//     backgroundColor: '#1a1a1a',
-//   },
-//   headerTitleStyle: {
-//     fontFamily: 'Poppins_600SemiBold',
-//     fontSize: 22,
-//   },
-//   headerTintColor: '#ffffff',
-// }}
-
 const Layout = () => {
   const router = useRouter();
   return (
@@ -40,13 +14,13 @@ const Layout = () => {
         options={{
           presentation: 'formSheet',
           animation: 'slide_from_bottom',
-          sheetAllowedDetents: [0.5],
+          sheetAllowedDetents: [0.3],
           sheetInitialDetentIndex: 0,
           sheetGrabberVisible: false,
           sheetCornerRadius: 20,
           headerShown: false,
           contentStyle: {
-            backgroundColor: 'transparent',
+            backgroundColor: (twFullConfig.theme.colors as any).dark,
           },
         }}
       />

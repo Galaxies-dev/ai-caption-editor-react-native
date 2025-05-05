@@ -61,11 +61,12 @@ export default function LoginScreen() {
       return;
     }
     try {
+      setEmailAtom(email);
+
       await signUp?.create({
         emailAddress: email,
       });
       await signUp!.prepareEmailAddressVerification({ strategy: 'email_code' });
-      setEmailAtom(email);
       router.push('/verify');
     } catch (error) {
       if (isClerkAPIResponseError(error)) {
