@@ -12,7 +12,6 @@ Additional features:
 - [Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/) for haptic feedback
 - [Jotai](https://jotai.pmnd.rs/) for state management
 - [NativeWind](https://www.nativewind.dev/) for styling
-- [Expo Linear Gradient](https://docs.expo.dev/versions/latest/sdk/linear-gradient/) for gradient backgrounds
 - [Expo Secure Store](https://docs.expo.dev/versions/latest/sdk/secure-store/) for secure storage
 - [Expo Image Picker](https://docs.expo.dev/versions/latest/sdk/image-picker/) for image picking
 - [Expo Video](https://docs.expo.dev/versions/latest/sdk/video/) for video playback
