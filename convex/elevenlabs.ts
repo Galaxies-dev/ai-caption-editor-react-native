@@ -26,14 +26,11 @@ export const processVideo = action({
       const videoBlob = new Blob([await response.arrayBuffer()], { type: 'video/mp4' });
 
       // Call ElevenLabs Speech to Text API
-      console.log('Processing video with ElevenLabs');
       const result = await client.speechToText.convert({
         file: videoBlob,
         model_id: 'scribe_v1',
         language_code: 'eng',
       });
-
-      console.log('Speech to text conversion completed');
 
       // Transform and filter words to match our schema
       const transformedWords = result.words
@@ -65,7 +62,6 @@ export const generateSpeech = action({
   },
   handler: async (ctx, args) => {
     try {
-      console.log('Generating speech');
       // Get the project
       const project = await ctx.runQuery(internal.projects.getProjectById, {
         id: args.projectId,
@@ -77,7 +73,7 @@ export const generateSpeech = action({
 
       // Use default voice if none specified
       const voiceId = args.voiceId || 'EXAVITQu4vr4xnSDxMaL'; // Default voice ID
-      console.log('🚀 ~ handler: ~ voiceId:', voiceId);
+
       // Generate speech from script
       const audioResponse = await client.textToSpeech.convert(voiceId, {
         text: project.script,
@@ -87,8 +83,6 @@ export const generateSpeech = action({
         },
         output_format: 'mp3_44100_128',
       });
-
-      console.log('Audio response generated');
 
       // Convert the Readable stream to a buffer
       const chunks: Buffer[] = [];
@@ -103,10 +97,7 @@ export const generateSpeech = action({
       // Store audio file in Convex storage
       const audioFileId = await ctx.storage.store(audioBlob);
 
-      console.log('Audio file stored in Convex storage');
-
       // Generate captions from the audio file
-      console.log('Generating captions from audio');
       const sttResult = await client.speechToText.convert({
         file: audioBlob,
         model_id: 'scribe_v1',
@@ -131,8 +122,6 @@ export const generateSpeech = action({
         words: transformedWords,
         language_code: sttResult.language_code,
       });
-
-      console.log('Project updated with audio file ID and captions');
 
       // Return the URL to the audio file
       return await ctx.storage.getUrl(audioFileId);

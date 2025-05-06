@@ -16,13 +16,10 @@ import { useSignUp, useSSO, useSignIn, isClerkAPIResponseError } from '@clerk/cl
 import Checkbox from 'expo-checkbox';
 import { Link, useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSetAtom } from 'jotai';
 import { emailAtom } from '@/store/login';
 import { twFullConfig } from '@/utils/twconfig';
 import * as Sentry from '@sentry/react-native';
-import { clerk } from '@clerk/clerk-expo/dist/provider/singleton';
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState<'google' | 'apple' | 'email' | false>(false);

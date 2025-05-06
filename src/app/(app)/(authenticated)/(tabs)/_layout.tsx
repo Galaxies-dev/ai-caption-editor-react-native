@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { HapticTab } from '@/components/HapticTab';
 import * as Haptics from 'expo-haptics';
@@ -29,7 +29,9 @@ const CreateButton = () => {
   };
 
   return (
-    <Pressable onPress={handleCreate} className="rounded-xl flex-1 items-center justify-center">
+    <TouchableOpacity
+      onPress={handleCreate}
+      className="rounded-xl flex-1 items-center justify-center">
       <LinearGradient
         colors={['#F3B01C', '#F3B01C']}
         start={{ x: 0, y: 0 }}
@@ -37,7 +39,7 @@ const CreateButton = () => {
         className="rounded-xl items-center justify-center px-6 py-1">
         <Text className="text-white text-lg font-Poppins_600SemiBold p-2">Create</Text>
       </LinearGradient>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 

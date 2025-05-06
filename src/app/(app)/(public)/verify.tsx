@@ -18,7 +18,7 @@ import { Alert } from 'react-native';
 const Verify = () => {
   const router = useRouter();
   const { isLogin } = useLocalSearchParams<{ isLogin?: string }>();
-  console.log('🚀 ~ Verify ~ isLogin:', isLogin);
+
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [countdown, setCountdown] = useState(60);
   const [isTimerRunning, setIsTimerRunning] = useState(true);
