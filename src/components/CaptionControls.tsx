@@ -43,6 +43,7 @@ export const CaptionControls = ({
           </TouchableOpacity>
         </View>
       </View>
+
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-white">Position</Text>
         <View className="flex-row">

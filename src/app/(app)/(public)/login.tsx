@@ -31,6 +31,7 @@ export default function LoginScreen() {
   const { signUp } = useSignUp();
   const { signIn, setActive } = useSignIn();
   const router = useRouter();
+
   const handleSignInWithSSO = async (strategy: 'oauth_google' | 'oauth_apple') => {
     if (strategy === 'oauth_google' || strategy === 'oauth_apple') {
       setLoading(strategy.replace('oauth_', '') as 'google' | 'apple');
@@ -125,17 +126,6 @@ export default function LoginScreen() {
     Sentry.captureException(new Error('Test Sentry Error'));
   };
 
-  const Logo = () => (
-    <View className="items-center mb-8 pt-8">
-      <View className="flex-row">
-        <Image source={require('@/assets/images/convex.png')} className="w-40 h-40" />
-      </View>
-      <Text className="text-gray-400 text-md mt-2 font-Poppins_400Regular">
-        AI-powered Captions editor
-      </Text>
-    </View>
-  );
-
   return (
     <View className="flex-1 bg-black pt-safe">
       <View className="flex-1 p-6">
@@ -146,7 +136,15 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </Link>
         </View>
-        <Logo />
+
+        <View className="items-center mb-8 pt-8">
+          <View className="flex-row">
+            <Image source={require('@/assets/images/convex.png')} className="w-40 h-40" />
+          </View>
+          <Text className="text-gray-400 text-md mt-2 font-Poppins_400Regular">
+            AI-powered Captions editor
+          </Text>
+        </View>
 
         <TextInput
           className="bg-gray-800 text-gray-300 p-5 rounded-xl mb-6"
@@ -230,11 +228,11 @@ export default function LoginScreen() {
         </View>
 
         <View className="items-center pt-6">
-          <TouchableOpacity onPress={signInWithPasskey}>
+          {/* <TouchableOpacity onPress={signInWithPasskey}>
             <Text className="text-gray-400 text-center font-Poppins_600SemiBold text-base">
               Continue with Passkey
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity onPress={testSentry}>
             <Text className="text-gray-400 text-center font-Poppins_600SemiBold text-base">

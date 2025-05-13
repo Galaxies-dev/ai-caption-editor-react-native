@@ -26,6 +26,7 @@ const Verify = () => {
   const email = useAtomValue(emailAtom);
   const { signUp, setActive } = useSignUp();
   const { signIn } = useSignIn();
+  const isCodeComplete = code.every((digit) => digit !== '');
 
   useEffect(() => {
     // Focus first input on mount
@@ -61,8 +62,6 @@ const Verify = () => {
       inputRefs.current[index - 1]?.focus();
     }
   };
-
-  const isCodeComplete = code.every((digit) => digit !== '');
 
   useEffect(() => {
     if (isCodeComplete) {

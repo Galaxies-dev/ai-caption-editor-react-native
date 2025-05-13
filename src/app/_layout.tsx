@@ -60,7 +60,6 @@ const InitialLayout = () => {
     }
   }, [fontsLoaded]);
 
-  Sentry;
   useEffect(() => {
     if (user && user.user) {
       Sentry.setUser({ email: user.user.emailAddresses[0].emailAddress, id: user.user.id });

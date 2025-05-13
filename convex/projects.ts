@@ -60,6 +60,18 @@ export const update = mutation({
     name: v.optional(v.string()),
     status: v.optional(v.union(v.literal('processing'), v.literal('ready'), v.literal('failed'))),
     error: v.optional(v.string()),
+    language: v.optional(v.string()),
+    captions: v.optional(
+      v.array(
+        v.object({
+          text: v.string(),
+          start: v.number(),
+          end: v.number(),
+          type: v.union(v.literal('word'), v.literal('spacing')),
+          speaker_id: v.string(),
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
@@ -69,39 +81,13 @@ export const update = mutation({
       throw new ConvexError('Project not found');
     }
 
-    await ctx.db.patch(id, {
-      ...updates,
-      lastUpdate: Date.now(),
-    });
-  },
-});
-
-// Update project captions
-export const updateCaptions = mutation({
-  args: {
-    id: v.id('projects'),
-    language: v.string(),
-    captions: v.array(
-      v.object({
-        text: v.string(),
-        start: v.number(),
-        end: v.number(),
-        type: v.union(v.literal('word'), v.literal('spacing')),
-        speaker_id: v.string(),
-      })
-    ),
-  },
-  handler: async (ctx, args) => {
-    const existing = await ctx.db.get(args.id);
-
-    if (!existing) {
-      throw new ConvexError('Project not found');
+    // If captions are being updated, set status to ready
+    if (updates.captions) {
+      updates.status = 'ready';
     }
 
-    await ctx.db.patch(args.id, {
-      language: args.language,
-      captions: args.captions,
-      status: 'ready',
+    await ctx.db.patch(id, {
+      ...updates,
       lastUpdate: Date.now(),
     });
   },
@@ -134,6 +120,35 @@ export const updateCaptionSettings = mutation({
 
     console.log('Caption settings updated successfully');
     return args.settings;
+  },
+});
+
+export const updateProjectById = internalMutation({
+  args: {
+    id: v.id('projects'),
+    generatedVideoFileId: v.optional(v.id('_storage')),
+    audioFileId: v.optional(v.id('_storage')),
+    words: v.optional(
+      v.array(
+        v.object({
+          text: v.string(),
+          start: v.number(),
+          end: v.number(),
+          type: v.union(v.literal('word'), v.literal('spacing')),
+          speaker_id: v.string(),
+        })
+      )
+    ),
+    language_code: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { id, language_code, words, ...updates } = args;
+    await ctx.db.patch(id, {
+      ...updates,
+      lastUpdate: Date.now(),
+      captions: words,
+      language: language_code,
+    });
   },
 });
 
@@ -176,35 +191,6 @@ export const getProjectById = internalQuery({
   args: { id: v.id('projects') },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
-  },
-});
-
-export const updateProjectById = internalMutation({
-  args: {
-    id: v.id('projects'),
-    generatedVideoFileId: v.optional(v.id('_storage')),
-    audioFileId: v.optional(v.id('_storage')),
-    words: v.optional(
-      v.array(
-        v.object({
-          text: v.string(),
-          start: v.number(),
-          end: v.number(),
-          type: v.union(v.literal('word'), v.literal('spacing')),
-          speaker_id: v.string(),
-        })
-      )
-    ),
-    language_code: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const { id, language_code, words, ...updates } = args;
-    await ctx.db.patch(id, {
-      ...updates,
-      lastUpdate: Date.now(),
-      captions: words,
-      language: language_code,
-    });
   },
 });
 

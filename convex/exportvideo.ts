@@ -17,12 +17,6 @@ export const generateCaptionedVideo = action({
     const project = await ctx.runQuery(internal.projects.getProjectById, {
       id: args.id as Id<'projects'>,
     });
-    console.log('Retrieved project:', {
-      hasProject: !!project,
-      hasCaptions: project?.captions?.length,
-      hasCaptionSettings: !!project?.captionSettings,
-      hasAudioFile: !!project?.audioFileId,
-    });
 
     if (!project) {
       throw new ConvexError('Project not found');
@@ -35,7 +29,6 @@ export const generateCaptionedVideo = action({
     const videoUrl = await ctx.runQuery(internal.projects.getFileUrlById, {
       id: project.videoFileId,
     });
-    console.log('Retrieved video URL:', { hasUrl: !!videoUrl });
 
     if (!videoUrl) {
       throw new ConvexError('Video URL not found');
@@ -57,7 +50,6 @@ export const generateCaptionedVideo = action({
 
     try {
       // Make request to microservice
-      console.log('Making request to microservice...: ', MICROSERVICE_URL);
       const response = await fetch(MICROSERVICE_URL, {
         method: 'POST',
         headers: {
@@ -76,8 +68,6 @@ export const generateCaptionedVideo = action({
         }),
       });
 
-      // console.log('Response:', response);
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(`Microservice error: ${error.error}`);
@@ -85,16 +75,11 @@ export const generateCaptionedVideo = action({
 
       // Get video data from response
       const videoBuffer = await response.arrayBuffer();
-      console.log('🚀 ~ handler: ~ videoBuffer:', videoBuffer);
-      console.log('Received processed video from microservice');
 
       // Upload to Convex storage with proper content type
-      console.log('Uploading generated video to storage...');
       const storageId = await ctx.storage.store(new Blob([videoBuffer], { type: 'video/mp4' }));
-      console.log('Video uploaded with storage ID:', storageId);
 
       // Update project with new video ID
-      console.log('Updating project with generated video ID...');
       await ctx.runMutation(internal.projects.updateProjectById, {
         id: args.id,
         generatedVideoFileId: storageId,
@@ -102,7 +87,6 @@ export const generateCaptionedVideo = action({
 
       // Get the URL for the generated video
       const finalVideoUrl = await ctx.storage.getUrl(storageId);
-      console.log('Generated video URL:', finalVideoUrl);
       return finalVideoUrl;
     } catch (error) {
       console.error('Error in video generation:', error);

@@ -5,11 +5,13 @@ bun install nativewind tailwindcss@^3.4.17
 bunx expo install expo-dev-client
 bunx expo install @expo-google-fonts/poppins expo-font
 bunx expo install expo-checkbox
+bunx expo install expo-linear-gradient
 bunx expo install expo-build-properties
 bunx expo install expo-image-picker
 bunx expo install expo-media-library
 bunx expo install expo-video
 bunx expo install expo-audio
+bun i date-fns
 
 bun install @clerk/clerk-expo expo-secure-store
 bun install @clerk/expo-passkeys
@@ -22,4 +24,4 @@ bunx convex dev
 
 bun install elevenlabs
 
-bunx @sentry/wizard@latest -s -i reactNative
+bunx @sentry/wizard@latest -s -i reactNativetask

@@ -47,7 +47,7 @@ const Page = () => {
           <TopCreateOption
             icon={<Ionicons name="videocam-outline" size={24} color="white" />}
             title="Record Video"
-            subtitle="Use our camera"
+            subtitle="Use your camera"
             onPress={onRecordVideo}
           />
         </View>

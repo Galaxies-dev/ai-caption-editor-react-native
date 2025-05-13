@@ -2,10 +2,10 @@ import { Stack } from 'expo-router';
 
 const Layout = () => {
   return (
-    <Stack>
-      <Stack.Screen name="login" options={{ headerShown: false }} />
-      <Stack.Screen name="faq" options={{ headerShown: false, presentation: 'modal' }} />
-      <Stack.Screen name="verify" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="login" />
+      <Stack.Screen name="faq" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="verify" />
     </Stack>
   );
 };

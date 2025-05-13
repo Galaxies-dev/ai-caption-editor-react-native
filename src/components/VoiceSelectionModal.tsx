@@ -1,9 +1,9 @@
-import { View, Text, Modal, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio, AVPlaybackStatus } from 'expo-av';
+import { useAction } from 'convex/react';
+import { useAudioPlayer } from 'expo-audio';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 interface Voice {
   id: string;
@@ -19,58 +19,30 @@ interface VoiceSelectionModalProps {
   onSelectVoice: (voiceId: string) => void;
 }
 
-const useAudioPlayer = () => {
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [isPlaying, setIsPlaying] = useState<string | null>(null);
+const useVoiceAudioPlayer = () => {
+  const [currentVoiceId, setCurrentVoiceId] = useState<string | null>(null);
+  const player = useAudioPlayer();
 
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
-
-  const playAudio = async (voice: Voice) => {
-    try {
-      // If the voice is already playing, pause it
-      if (isPlaying === voice.id && sound) {
-        await sound.pauseAsync();
-        setIsPlaying(null);
-        return;
-      }
-
-      // Stop any currently playing sound
-      if (sound) {
-        await sound.stopAsync();
-        await sound.unloadAsync();
-      }
-
-      // Load and play the new preview
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: voice.previewUrl },
-        { shouldPlay: true }
-      );
-
-      setSound(newSound);
-      setIsPlaying(voice.id);
-
-      // Reset playing state when finished
-      newSound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
-        if (!status.isLoaded) return;
-        if (status.didJustFinish) {
-          setIsPlaying(null);
-        }
-      });
-    } catch (error) {
-      console.error('Failed to play preview:', error);
-      setIsPlaying(null);
+  const playAudio = (voice: Voice) => {
+    // If the same voice is playing, pause it
+    if (player && currentVoiceId === voice.id && player.playing) {
+      player.pause();
+      setCurrentVoiceId(null);
+      return;
     }
+
+    // If a different voice is playing, stop it
+    if (player && player.playing) {
+      player.pause();
+    }
+    player?.replace(voice.previewUrl);
+    setCurrentVoiceId(voice.id);
+    player?.play();
   };
 
   return {
     playAudio,
-    isPlaying,
+    isPlaying: currentVoiceId,
   };
 };
 
@@ -81,7 +53,7 @@ export const VoiceSelectionModal = ({
 }: VoiceSelectionModalProps) => {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { playAudio, isPlaying } = useAudioPlayer();
+  const { playAudio, isPlaying } = useVoiceAudioPlayer();
 
   const getVoices = useAction(api.elevenlabs.getVoices);
 

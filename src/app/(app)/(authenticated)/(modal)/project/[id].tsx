@@ -48,7 +48,6 @@ const Page = () => {
 
   const project = useQuery(api.projects.get, { projectId: id as Id<'projects'> });
   const updateProject = useMutation(api.projects.update);
-  const updateCaptions = useMutation(api.projects.updateCaptions);
   const updateCaptionSettings = useMutation(api.projects.updateCaptionSettings);
   const updateProjectScript = useMutation(api.projects.updateScript);
   const processVideo = useAction(api.elevenlabs.processVideo);
@@ -158,10 +157,11 @@ const Page = () => {
         videoId,
       });
 
-      await updateCaptions({
+      await updateProject({
         id: project._id,
         language: result.language_code,
         captions: result.words,
+        status: 'ready',
       });
     } catch (error) {
       // Update project status to failed
