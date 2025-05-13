@@ -1,4 +1,4 @@
-# React Native AI Captions Editor with Convex, ElevenLabs, Sentry and Expo
+# React Native AI Captions Editor with Convex, ElevenLabs, Clerk, Sentry and Expo
 
 This is a React Native AI Captions Editor using [Convex](https://convex.link/simongrimm) for real-time data synchronization, [ElevenLabs](https://try.elevenlabs.io/j7ztnqelnoqj) for text-to-speech, [Clerk](https://go.clerk.com/GiiEcN5) for user authentication and [Sentry](https://dub.sh/sentry-galaxies) for error tracking.
 
