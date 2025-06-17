@@ -22,7 +22,7 @@ Additional features:
 Watch and build this AI Captions Editor step by step:
 
 <p align="center">
-  <a href="https://img.youtube.com/vi/Snw0b-PMhsU/maxresdefault.jpg" target="_blank">
+  <a href="https://www.youtube.com/watch?v=Snw0b-PMhsU" target="_blank">
     <img src="https://img.youtube.com/vi/Snw0b-PMhsU/maxresdefault.jpg" alt="Build a React Native AI Captions Editor with Convex, ElevenLabs, Sentry and Expo" width="100%" />
   </a>
 </p>
